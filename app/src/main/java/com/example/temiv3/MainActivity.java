@@ -120,6 +120,15 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         Button exitButton = findViewById(R.id.exitButton);
         exitButton.setVisibility(View.VISIBLE);
 
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+            }
+        });
+
+
     }
 
 

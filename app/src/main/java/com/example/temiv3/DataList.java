@@ -36,6 +36,16 @@ public class DataList extends AppCompatActivity {
         });
 
         ////////////////////////
+
+        Button exitButton = findViewById(R.id.exitButton);
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+
 /*
         Button exitButton = (Button)  findViewById(R.id.exitButton);
         exitButton.setVisibility(View.VISIBLE);
