@@ -36,14 +36,15 @@ public class DataList extends AppCompatActivity {
         });
 
         ////////////////////////
-
-        Button backbutton = (Button)  findViewById(R.id.toMainbutton);
-        backbutton.setOnClickListener(new View.OnClickListener() {
+/*
+        Button exitButton = (Button)  findViewById(R.id.exitButton);
+        exitButton.setVisibility(View.VISIBLE);
+        exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
             }
-        });
+        });*/
         ////////////////
 
     }

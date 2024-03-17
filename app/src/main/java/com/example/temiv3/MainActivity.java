@@ -117,6 +117,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             View itemView = ad.getView(i, null, tab);
             tab.addView(itemView);
         }
+        Button exitButton = findViewById(R.id.exitButton);
+        exitButton.setVisibility(View.VISIBLE);
 
     }
 
