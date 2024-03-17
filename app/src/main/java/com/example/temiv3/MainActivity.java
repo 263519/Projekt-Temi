@@ -67,14 +67,14 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
 
 
-        /*Listbutton.setOnClickListener(new View.OnClickListener() {
+        Listbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, DataList.class);
                 startActivity(intent);
 
             }
-        });*/
+        });
 ////////////////////////////////////
         btninsert.setOnClickListener(new View.OnClickListener() {
             Connection connection = null;
