@@ -2,13 +2,17 @@ package com.example.temiv3;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
+import androidx.core.view.ViewCompat;
 import android.widget.Button;
+import android.widget.SimpleAdapter;
+import android.widget.TableLayout;
 import android.widget.TextView;
 
 import com.robotemi.sdk.Robot;
@@ -18,26 +22,18 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
+
+
+
+
 
 public class MainActivity extends AppCompatActivity implements OnRobotReadyListener {
 
 
 
-    @SuppressLint("NewApi")
-    public Connection connectionclass() {
-        Connection con = null;
-        String ip = "172.16.0.115", port = "1433", username = "sa", password = "Oliwia123!@", databasename = "Temi";
-        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(tp);
-        try {
-            Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + databasename + ";User=" + username + ";password=" + password + ";";
-            con = DriverManager.getConnection(connectionUrl);
-        } catch (Exception exception) {
-            Log.e("Error", exception.getMessage());
-        }
-        return con;
-    }
+
 
     public static final String TAG = MainActivity.class.getSimpleName();
     public static Robot mRobot;
@@ -64,15 +60,30 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         TextView location = (TextView) findViewById(R.id.edittextlocation);
         TextView description = (TextView) findViewById(R.id.edittextdescription);
         Button btninsert = (Button) findViewById(R.id.btnadd);
+        Button Listbutton = (Button) findViewById((R.id.listbutton)) ;
 //        Button btnupdate = (Button) findViewById(R.id.btnupdate);
 //        Button btndelete = (Button) findViewById(R.id.btndelete);
 //        Button btnget = (Button) findViewById(R.id.btnget);
 
-        btninsert.setOnClickListener(new View.OnClickListener() {
+
+
+        /*Listbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Connection connection = connectionclass();
+                Intent intent = new Intent(MainActivity.this, DataList.class);
+                startActivity(intent);
+
+            }
+        });*/
+////////////////////////////////////
+        btninsert.setOnClickListener(new View.OnClickListener() {
+            Connection connection = null;
+            @Override
+            public void onClick(View v) {
+
                 try {
+                    ConnectionHelper connectionHelper = new ConnectionHelper();
+                    connection = connectionHelper.connectionclass();
                     if (connection != null) {
                         String sqlinsert = "Insert into Garage values ('" + id.getText().toString() + "','" + name.getText().toString() + "','" + location.getText().toString() + "','" + description.getText().toString() + "')";
                         Statement st = connection.createStatement();
@@ -85,6 +96,33 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         });
     }
 
+
+
+
+
+
+    public void GetList(View v){
+        SimpleAdapter ad;
+        setContentView(R.layout.datalistlayout);
+        TableLayout tab = (TableLayout) findViewById(R.id.tableLayout);
+
+        List<Map<String,String>> MyDataList=null;
+        ListItem MyData = new ListItem();
+        MyDataList = MyData.getlist();
+
+        String[] Fromw={"idList","nameList","locList","desList"};
+        int[] Tow={R.id.idList,R.id.nameList,R.id.locList,R.id.desList};
+        ad = new SimpleAdapter(MainActivity.this,MyDataList,R.layout.datalistlayout,Fromw,Tow);
+        for (int i = 0; i < ad.getCount(); i++) {
+            View itemView = ad.getView(i, null, tab);
+            tab.addView(itemView);
+        }
+
+    }
+
+
+
+/////////////////////////////
     @Override
     protected void onStart() {
         super.onStart();
@@ -92,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         // Add robot event listeners
         mRobot.addOnRobotReadyListener(this);
     }
-
+/////////////////////////////
     @Override
     protected void onStop() {
         super.onStop();
@@ -100,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         // Remove robot event listeners
         mRobot.removeOnRobotReadyListener(this);
     }
-
+//////////////////////////////
     @Override
     public void onRobotReady(boolean isReady) {
         if (isReady) {
