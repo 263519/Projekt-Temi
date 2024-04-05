@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.robotemi.sdk.Robot;
 import com.robotemi.sdk.TtsRequest;
 import com.robotemi.sdk.listeners.OnRobotReadyListener;
+import com.robotemi.sdk.navigation.model.Position;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -162,7 +163,15 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             }
         }
         // When robot is ready
-        TtsRequest ttsRequest = TtsRequest.create("Litwo ojczyzno moja",false, TtsRequest.Language.PL_PL);
+        TtsRequest ttsRequest = TtsRequest.create("es",true, TtsRequest.Language.PL_PL);
         mRobot.speak(ttsRequest);
+
+        float X = 0.40F; //[m]
+        float Y = 0.0F; //[m]
+        float yaw = 0.0F; //[deg]
+        int tilt = -25; //[deg]
+
+        Position pose = new Position(X, Y, yaw, tilt);
+        mRobot.goToPosition(pose);
     }
 }
