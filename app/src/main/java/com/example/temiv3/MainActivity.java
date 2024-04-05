@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             }
         }
         // When robot is ready
-        TtsRequest ttsRequest = TtsRequest.create("Litwo ojczyzno moja",false, TtsRequest.Language.PL_PL);
+        TtsRequest ttsRequest = TtsRequest.create("Litwo",false, TtsRequest.Language.PL_PL);
         mRobot.speak(ttsRequest);
     }
 }
