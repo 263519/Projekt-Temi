@@ -3,73 +3,71 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/main"
-
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    >
+    xmlns:tools="http://schemas.android.com/tools">
 
-
-    <LinearLayout
-        android:id="@+id/linearLayout"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:context=".DataList">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <TableLayout
-            android:id="@+id/tableLayout"
+        <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:stretchColumns="*"
+            android:orientation="vertical"
+            android:padding="16dp"
+            tools:context=".DataList">
 
-            >
-
-            <TableRow
+            <TableLayout
+                android:id="@+id/tableLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/darker_gray">
+                android:stretchColumns="*">
 
-                <TextView
-                    android:id="@+id/idList"
-                    android:layout_width="wrap_content"
+                <TableRow
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="ID"
-                    android:textColor="@android:color/white" />
+                    android:background="@android:color/darker_gray">
 
-                <TextView
-                    android:id="@+id/nameList"
-                    android:layout_width="470dp"
-                    android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="Name"
-                    android:textColor="@android:color/white" />
+                    <TextView
+                        android:id="@+id/idList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="ID"
+                        android:textColor="@android:color/white" />
 
-                <TextView
-                    android:id="@+id/locList"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="Location"
-                    android:textColor="@android:color/white" />
+                    <TextView
+                        android:id="@+id/nameList"
+                        android:layout_width="470dp"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="Name"
+                        android:textColor="@android:color/white" />
 
-                <TextView
-                    android:id="@+id/desList"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="Description"
-                    android:textColor="@android:color/white" />
-            </TableRow>
-        </TableLayout>
+                    <TextView
+                        android:id="@+id/locList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="Location"
+                        android:textColor="@android:color/white" />
 
-
-    </LinearLayout>
+                    <TextView
+                        android:id="@+id/desList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="Description"
+                        android:textColor="@android:color/white" />
+                </TableRow>
+            </TableLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <Button
         android:id="@+id/exitButton"
@@ -80,6 +78,4 @@
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
-

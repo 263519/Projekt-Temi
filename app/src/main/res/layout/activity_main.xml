@@ -104,7 +104,7 @@
         android:layout_marginStart="820dp"
         android:layout_marginTop="672dp"
 
-        android:text="Location"
+        android:text="Desctipton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
