@@ -1,4 +1,5 @@
 package com.example.temiv3;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
@@ -17,7 +18,9 @@ import android.widget.TextView;
 
 import com.robotemi.sdk.Robot;
 import com.robotemi.sdk.TtsRequest;
+import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnRobotReadyListener;
+import com.robotemi.sdk.navigation.model.Position;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -30,7 +33,7 @@ import java.util.Map;
 
 
 
-public class MainActivity extends AppCompatActivity implements OnRobotReadyListener {
+public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener {
 
 
 
@@ -153,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 //////////////////////////////
     @Override
     public void onRobotReady(boolean isReady) {
+
+
         if (isReady) {
             try {
                 final ActivityInfo activityInfo = getPackageManager().getActivityInfo(getComponentName(), PackageManager.GET_META_DATA);
@@ -162,7 +167,38 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             }
         }
         // When robot is ready
-        TtsRequest ttsRequest = TtsRequest.create("Litwo",false, TtsRequest.Language.PL_PL);
+        TtsRequest ttsRequest = TtsRequest.create("nigger czarnuch",true, TtsRequest.Language.PL_PL);
         mRobot.speak(ttsRequest);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        float posX = 0.3F; // [m]
+        float posY = -1.0F; // [m]
+        float yaw = 0.0F; // [deg]
+        int tilt = 0; // [deg]
+
+//        Position pose = new Position(posX, posY, yaw, tilt);
+//        mRobot.goToPosition(pose);
+     //   mRobot.goTo("Sigma");
+
+List<String> s = mRobot.getLocations();
+        for (String str : s) {
+            ttsRequest = TtsRequest.create(str,true, TtsRequest.Language.PL_PL);
+            mRobot.speak(ttsRequest);
+            mRobot.goTo(str);
+            try {
+                Thread.sleep(30000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public void onGoToLocationStatusChanged(@NonNull String s, @NonNull String s1, int i, @NonNull String s2) {
+
     }
 }
