@@ -16,6 +16,7 @@ import android.widget.TableLayout;
 import android.widget.TextView;
 
 import com.robotemi.sdk.Robot;
+import com.robotemi.sdk.TtsRequest;
 import com.robotemi.sdk.listeners.OnRobotReadyListener;
 
 import java.sql.Connection;
@@ -160,5 +161,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
                 throw new RuntimeException(e);
             }
         }
+        // When robot is ready
+        TtsRequest ttsRequest = TtsRequest.create("Litwo ojczyzno moja",false, TtsRequest.Language.PL_PL);
+        mRobot.speak(ttsRequest);
     }
 }
