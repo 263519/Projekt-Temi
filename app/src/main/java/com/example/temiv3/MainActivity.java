@@ -1,7 +1,7 @@
 package com.example.temiv3;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
+import android.util.Log;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -16,8 +16,10 @@ import android.widget.SimpleAdapter;
 import android.widget.TableLayout;
 import android.widget.TextView;
 
+
 import com.robotemi.sdk.Robot;
 import com.robotemi.sdk.TtsRequest;
+
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnRobotReadyListener;
 import com.robotemi.sdk.navigation.model.Position;
@@ -29,7 +31,9 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
-
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 
 
@@ -144,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
         // Add robot event listeners
         mRobot.addOnRobotReadyListener(this);
+        mRobot.addOnGoToLocationStatusChangedListener(this);
     }
 /////////////////////////////
     @Override
@@ -152,53 +157,70 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
         // Remove robot event listeners
         mRobot.removeOnRobotReadyListener(this);
+        mRobot.removeOnGoToLocationStatusChangedListener(this);
+
     }
+
+
+
 //////////////////////////////
-    @Override
-    public void onRobotReady(boolean isReady) {
-
-
-        if (isReady) {
-            try {
-                final ActivityInfo activityInfo = getPackageManager().getActivityInfo(getComponentName(), PackageManager.GET_META_DATA);
-                mRobot.onStart(activityInfo);
-            } catch (PackageManager.NameNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        // When robot is ready
-        TtsRequest ttsRequest = TtsRequest.create("nigger czarnuch",true, TtsRequest.Language.PL_PL);
-        mRobot.speak(ttsRequest);
+@Override
+public void onRobotReady(boolean isReady) {
+    if (isReady) {
         try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
+            final ActivityInfo activityInfo = getPackageManager().getActivityInfo(getComponentName(), PackageManager.GET_META_DATA);
+            mRobot.onStart(activityInfo);
+        } catch (PackageManager.NameNotFoundException e) {
             throw new RuntimeException(e);
         }
 
-        float posX = 0.3F; // [m]
-        float posY = -1.0F; // [m]
-        float yaw = 0.0F; // [deg]
-        int tilt = 0; // [deg]
+        List<String> locations = mRobot.getLocations();
+        goToLocations(locations);
 
-//        Position pose = new Position(posX, posY, yaw, tilt);
-//        mRobot.goToPosition(pose);
-     //   mRobot.goTo("Sigma");
+    }
+}
 
-List<String> s = mRobot.getLocations();
-        for (String str : s) {
-            ttsRequest = TtsRequest.create(str,true, TtsRequest.Language.PL_PL);
-            mRobot.speak(ttsRequest);
-            mRobot.goTo(str);
-            try {
-                Thread.sleep(30000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+
+    private void speakOnArrival(String location) {
+        String tekst = "dojechalem do domu";
+        mRobot.speak(TtsRequest.create(tekst, false));
     }
 
+
+    private void goToLocations(List<String> locations) {
+        CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+        for (String location : locations) {
+            future = future.thenCompose((Void) -> {
+                CompletableFuture<Void> goToFuture = new CompletableFuture<>();
+                mRobot.addOnGoToLocationStatusChangedListener(new OnGoToLocationStatusChangedListener() {
+                    @Override
+                    public void onGoToLocationStatusChanged(@NonNull String location, @NonNull String status, int descriptionId, @NonNull String description) {
+                        if (status.equals("complete")) {
+                            Log.d(TAG, "Completed goTo: " + location);
+                            speakOnArrival(location);
+                            goToFuture.complete(null);
+                        }
+                    }
+                });
+                mRobot.goTo(location);
+                return goToFuture;
+            });
+        }
+
+        future.thenRun(() -> {
+            Log.d(TAG, "All goTo operations completed");
+
+        });
+    }
+
+
     @Override
-    public void onGoToLocationStatusChanged(@NonNull String s, @NonNull String s1, int i, @NonNull String s2) {
+    public void onGoToLocationStatusChanged(@NonNull String location, @NonNull String status, int  descriptionId, @NonNull String description) {
+
+        Log.d(TAG, String.format("GoToStatusChanged: location=%s, status=%s, descriptionId=%d, description=%s", location, status, descriptionId, description));
+        mRobot.speak(TtsRequest.create(status, false));
+
+
 
     }
 }
