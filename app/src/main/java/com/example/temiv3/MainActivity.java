@@ -21,23 +21,26 @@ import com.robotemi.sdk.Robot;
 import com.robotemi.sdk.TtsRequest;
 
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener;
+import com.robotemi.sdk.listeners.OnLocationsUpdatedListener;
 import com.robotemi.sdk.listeners.OnRobotReadyListener;
 import com.robotemi.sdk.navigation.model.Position;
+import com.robotemi.sdk.sequence.OnSequencePlayStatusChangedListener;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.*;
 
 
 
-public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener {
+
+public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener {
 
 
 
@@ -147,8 +150,11 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         super.onStart();
 
         // Add robot event listeners
+        mRobot.addTtsListener(this);
         mRobot.addOnRobotReadyListener(this);
         mRobot.addOnGoToLocationStatusChangedListener(this);
+        mRobot.addOnSequencePlayStatusChangedListener(this);
+        mRobot.addOnLocationsUpdatedListener(this);
     }
 /////////////////////////////
     @Override
@@ -156,8 +162,12 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         super.onStop();
 
         // Remove robot event listeners
+        mRobot.removeOnSequencePlayStatusChangedListener(this);
+        mRobot.removeTtsListener(this);
         mRobot.removeOnRobotReadyListener(this);
         mRobot.removeOnGoToLocationStatusChangedListener(this);
+        mRobot.removeOnLocationsUpdateListener(this);
+
 
     }
 
@@ -175,7 +185,8 @@ public void onRobotReady(boolean isReady) {
         }
 
         List<String> locations = mRobot.getLocations();
-        goToLocations(locations);
+        List<String> locations_withou_base = new ArrayList<>(locations.subList(1, locations.size()));
+        goToLocations(locations_withou_base);
 
     }
 }
@@ -185,6 +196,26 @@ public void onRobotReady(boolean isReady) {
         String tekst = "dojechalem do domu";
         mRobot.speak(TtsRequest.create(tekst, false));
     }
+    private void speakOnArrival(String location, CompletableFuture<Void> future) {
+        String text = "Jestem robotem Temi, inteligentnym asystentem domowym, zaprojektowanym do" +
+                " ułatwienia codziennego życia poprzez dostarczanie różnorodnych usług i funkcji. Moje zadania " +
+                "obejmują nawigację po domu, dostarczanie informacji, wykonywanie poleceń głosowych, odtwarzanie multimediów " +
+                "oraz wiele innych. Wyposażony jestem w zaawansowane czujniki i technologie, które umożliwiają mi bezpieczną i efektywną" +
+                " interakcję z użytkownikami. Dzięki moim zdolnościom mogę usprawnić organizację domu, zapewniając wygodę i komfort dla " +
+                "wszystkich domowników." +
+                "" ;
+        TtsRequest ttsRequest = TtsRequest.create(text, false);
+        mRobot.speak(ttsRequest);
+
+        mRobot.addTtsListener(new Robot.TtsListener() {
+            @Override
+            public void onTtsStatusChanged(TtsRequest ttsRequest) {
+                if (ttsRequest.getStatus() == TtsRequest.Status.COMPLETED) {
+                    future.complete(null); // Oznacz CompletableFuture jako ukończony po zakończeniu wypowiedzi
+                }
+            }
+        });
+    }
 
 
     private void goToLocations(List<String> locations) {
@@ -193,16 +224,25 @@ public void onRobotReady(boolean isReady) {
             future = future.thenCompose((Void) -> {
                 CompletableFuture<Void> goToFuture = new CompletableFuture<>();
                 mRobot.addOnGoToLocationStatusChangedListener(new OnGoToLocationStatusChangedListener() {
+
                     @Override
                     public void onGoToLocationStatusChanged(@NonNull String location, @NonNull String status, int descriptionId, @NonNull String description) {
+
                         if (status.equals("complete")) {
                             Log.d(TAG, "Completed goTo: " + location);
-                            speakOnArrival(location);
-                            goToFuture.complete(null);
+                            mRobot.stopMovement(); // Zatrzymaj ruch robota po dotarciu do lokalizacji
+                            speakOnArrival(location, goToFuture); // Wywołaj metodę mówienia, a następnie przekaż CompletableFuture dla kontynuacji
+
+                            //goToFuture.complete(null);
+
                         }
+
                     }
                 });
+
                 mRobot.goTo(location);
+
+
                 return goToFuture;
             });
         }
@@ -218,9 +258,43 @@ public void onRobotReady(boolean isReady) {
     public void onGoToLocationStatusChanged(@NonNull String location, @NonNull String status, int  descriptionId, @NonNull String description) {
 
         Log.d(TAG, String.format("GoToStatusChanged: location=%s, status=%s, descriptionId=%d, description=%s", location, status, descriptionId, description));
-        mRobot.speak(TtsRequest.create(status, false));
+       // mRobot.speak(TtsRequest.create(status, false));
 
 
 
+    }
+
+    @Override
+    public void onTtsStatusChanged(@NonNull TtsRequest ttsRequest) {
+        @NonNull String stat = ttsRequest.getStatus().name();
+        Log.d(TAG, String.format("TTS Status: %s", stat));
+    }
+
+    @Override
+    public void onSequencePlayStatusChanged(int i) {
+        @NonNull String state= "" ;
+        switch (i) {
+            case 0:
+                state = "Finishing playing";
+                break;
+            case 1:
+                state = "Source preparing";
+                break;
+            case 2:
+                state = "Playing";
+                break;
+            case -1:
+                state = "Errors occurred while playing";
+                break;
+        }
+        Log.d(TAG, String.format("SequenceStatus: %s ", state));
+        //Log.d(TAG, String.format("SequenceStatusINT: %s ", i));
+    }
+
+    @Override
+    public void onLocationsUpdated(@NonNull List<String> list) {
+        for (String location : list) {
+            Log.d("LocationsUpdated", "Location: " + location);
+        }
     }
 }
