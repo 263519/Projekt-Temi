@@ -50,7 +50,7 @@ public class DataList extends AppCompatActivity {
             }
         });*/
         ////////////////
-        Button exitButton = (Button)  findViewById(R.id.goDJ);
+      //  Button exitButton = (Button)  findViewById(R.id.goDJ);
 
 /*
         exitButton.setOnClickListener(new View.OnClickListener() {
