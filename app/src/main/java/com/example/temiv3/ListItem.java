@@ -1,5 +1,7 @@
 package com.example.temiv3;
 
+import static com.example.temiv3.MainActivity.TAG;
+
 import android.util.Log;
 
 import java.sql.Connection;
@@ -106,6 +108,28 @@ public class ListItem {
         }
         return description;
     }
+
+    public void updateDescriptionInDatabase(String location, String newDescription) {
+        Log.d(TAG,"Tu");
+        try {
+            ConnectionHelper connectionHelper = new ConnectionHelper();
+            Connection connection = connectionHelper.connectionclass();
+            if (connection != null) {
+                String sqlUpdate = "UPDATE Garage1 SET Description = ? WHERE Location = ?";
+                PreparedStatement statement = connection.prepareStatement(sqlUpdate);
+                statement.setString(1, newDescription);
+                statement.setString(2, location);
+                int rowsAffected = statement.executeUpdate();
+                Log.d("Update Database", rowsAffected + " rows affected");
+                connection.close();
+            }else{
+                Log.d(TAG,"NIe ma");
+            }
+        } catch (Exception exception) {
+            Log.e("Error", exception.getMessage());
+        }
+    }
+
 
 
 }

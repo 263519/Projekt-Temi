@@ -2,11 +2,13 @@ package com.example.temiv3;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.EditText;
 import android.widget.SimpleAdapter;
 import android.widget.TableLayout;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,87 +16,123 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-
-import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
 public class DataList extends AppCompatActivity {
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_display_data);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
 
+        Button exitButton = findViewById(R.id.goDJ);
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GetList(v);
+            }
         });
-
-        ////////////////////////
-
-
-
-
-/*
-        Button exitButton = (Button)  findViewById(R.id.exitButton);
-        exitButton.setVisibility(View.VISIBLE);
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });*/
-        ////////////////
-        Button exitButton = (Button)  findViewById(R.id.goDJ);
-
-/*
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DataList.this, MainActivity.class);
-                startActivity(intent);
-
-            }
-        });*/
     }
 
+    protected void onResume() {
+        super.onResume();
 
+        refreshData();
+    }
+    private void refreshData() {
 
-
-
-
-    public void GetList(View v){
-        SimpleAdapter ad;
-        setContentView(R.layout.datalistlayout);
-        TableLayout tab = (TableLayout) findViewById(R.id.tableLayout);
-
-        List<Map<String,String>> MyDataList=null;
         ListItem MyData = new ListItem();
-        MyDataList = MyData.getlist();
+        List<Map<String, String>> MyDataList = MyData.getlist();
 
-        String[] Fromw={"locList","desList"};
-        int[] Tow={R.id.locList,R.id.desList};
-        ad = new SimpleAdapter(DataList.this,MyDataList,R.layout.datalistlayout,Fromw,Tow);
-        for (int i = 0; i < ad.getCount(); i++) {
-            View itemView = ad.getView(i, null, tab);
-            tab.addView(itemView);
+
+        TableLayout tab = findViewById(R.id.tableLayout);
+        if (tab == null) {
+
+            Log.e("DataList", "Nie ma");
+            return;
         }
-        Button exitButton = findViewById(R.id.exitButton);
-        exitButton.setVisibility(View.VISIBLE);
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            finish();
-
-            }
-        });
 
 
+        tab.removeAllViews();
+
+
+        for (int i = 0; i < MyDataList.size(); i++) {
+
+            Map<String, String> itemData = MyDataList.get(i);
+            final String description = itemData.get("desList");
+
+            final String local = itemData.get("locList");
+
+
+            Button button = new Button(this);
+            button.setText(local);
+
+
+            tab.addView(button);
+
+
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Intent intent = new Intent(DataList.this, EditDescriptionActivity.class);
+
+
+                    intent.putExtra("description", description);
+                    intent.putExtra("location", local);
+
+                    startActivity(intent);
+                }
+            });
+        }
     }
+    public void GetList(View v) {
+        setContentView(R.layout.datalistlayout);
+
+        ListItem MyData = new ListItem();
+        List<Map<String, String>> MyDataList = MyData.getlist();
+
+
+        TableLayout tab = findViewById(R.id.tableLayout);
+        if (tab == null) {
+
+            Log.e("DataList", "TableLayout 'tableLayout' not found in the main layout");
+            return;
+        }
+
+
+        for (int i = 0; i < MyDataList.size(); i++) {
+
+            Map<String, String> itemData = MyDataList.get(i);
+            final String description = itemData.get("desList");
+
+
+            final String local = itemData.get("locList");
+
+
+            Button button = new Button(this);
+            button.setText(local);
+
+
+            tab.addView(button);
+
+
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Intent intent = new Intent(DataList.this, EditDescriptionActivity.class);
+
+
+                    intent.putExtra("description", description);
+                    intent.putExtra("location", local);
+
+                    startActivity(intent);
+                }
+            });
+        }
+    }
+
 
 }

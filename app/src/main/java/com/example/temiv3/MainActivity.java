@@ -126,35 +126,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
 
 
-    public void GetList(View v){
-        SimpleAdapter ad;
-        setContentView(R.layout.datalistlayout);
-        TableLayout tab = (TableLayout) findViewById(R.id.tableLayout);
 
-        List<Map<String,String>> MyDataList=null;
-        ListItem MyData = new ListItem();
-        MyDataList = MyData.getlist();
-
-        String[] Fromw={"locList","desList"};
-        int[] Tow={R.id.locList,R.id.desList};
-        ad = new SimpleAdapter(MainActivity.this,MyDataList,R.layout.datalistlayout,Fromw,Tow);
-        for (int i = 0; i < ad.getCount(); i++) {
-            View itemView = ad.getView(i, null, tab);
-            tab.addView(itemView);
-        }
-        Button exitButton = findViewById(R.id.exitButton);
-        exitButton.setVisibility(View.VISIBLE);
-
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-            }
-        });
-
-
-    }
 
 
 
@@ -255,7 +227,7 @@ private void AddLocationToDatabase(List<String> locations){
                     }
                 });
 
-                mRobot.goTo(location);
+              //  mRobot.goTo(location);
 
 
                 return goToFuture;
