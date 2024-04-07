@@ -134,7 +134,9 @@
         android:id="@+id/button_go_next"
         android:layout_width="168dp"
         android:layout_height="115dp"
+        android:layout_marginStart="160dp"
+        android:layout_marginTop="336dp"
         android:text="Button"
-        tools:layout_editor_absoluteX="248dp"
-        tools:layout_editor_absoluteY="368dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
