@@ -11,6 +11,8 @@ import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import androidx.core.view.ViewCompat;
+
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.SimpleAdapter;
 import android.widget.TableLayout;
@@ -147,6 +149,22 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
     }
 
+//    public String GetRowFromDB(){
+//        String return_string;
+//        Connection connection = null;
+//        try {
+//            ConnectionHelper connectionHelper = new ConnectionHelper();
+//            connection = connectionHelper.connectionclass();
+//            if (connection != null) {
+//                String sqlselect = "Insert ";
+//                Statement st = connection.createStatement();
+//                ResultSet rs = st.executeQuery(sqlselect);
+//            }
+//        } catch (Exception exception) {
+//            Log.e("Error", exception.getMessage());
+//        }
+//    return return_string;
+//    }
 
 
     /////////////////////////////
@@ -203,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         TtsRequest ttsRequest = TtsRequest.create(text, false);
         mRobot.speak(ttsRequest);
 
+
         mRobot.addTtsListener(new Robot.TtsListener() {
             @Override
             public void onTtsStatusChanged(TtsRequest ttsRequest) {
@@ -223,6 +242,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
     private void goToLocations(List<String> locations) {
         CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
         for (String location : locations) {
+
+
             future = future.thenCompose((Void) -> {
                 CompletableFuture<Void> goToFuture = new CompletableFuture<>();
                 mRobot.addOnGoToLocationStatusChangedListener(new OnGoToLocationStatusChangedListener() {
@@ -235,6 +256,17 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
                             mRobot.stopMovement(); // Zatrzymaj ruch robota po dotarciu do lokalizacji
                             speakOnArrival(location, goToFuture); // Wywołaj metodę mówienia, a następnie przekaż CompletableFuture dla kontynuacji
 
+                            //goToFuture.complete(null);
+
+                        }
+                        if (status.equals("abort")) {
+                            Button RetryButton = (Button) findViewById(R.id.button_retry);
+                            RetryButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mRobot.goTo(location);
+                                }
+                            });
                             //goToFuture.complete(null);
 
                         }
