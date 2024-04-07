@@ -77,8 +77,8 @@ public class DataList extends AppCompatActivity {
         ListItem MyData = new ListItem();
         MyDataList = MyData.getlist();
 
-        String[] Fromw={"idList","nameList","locList","desList"};
-        int[] Tow={R.id.idList,R.id.nameList,R.id.locList,R.id.desList};
+        String[] Fromw={"locList","desList"};
+        int[] Tow={R.id.locList,R.id.desList};
         ad = new SimpleAdapter(DataList.this,MyDataList,R.layout.datalistlayout,Fromw,Tow);
         for (int i = 0; i < ad.getCount(); i++) {
             View itemView = ad.getView(i, null, tab);

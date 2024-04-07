@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import java.util.List;
@@ -40,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 
-public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener {
+public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener, Robot.AsrListener {
 
 
 
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
     public static final String TAG = MainActivity.class.getSimpleName();
     public static Robot mRobot;
 
+    ListItem listItem;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +59,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
         // Initialize robot instance`
         mRobot = Robot.getInstance();
+
+        listItem = new ListItem();
 
         // Initialize exit button
         final Button buttonExit = findViewById(R.id.buttonExit);
@@ -66,8 +71,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             }
         });
 
-        TextView id = (TextView) findViewById(R.id.edittexid);
-        TextView name = (TextView) findViewById(R.id.edittextname);
+      //  TextView id = (TextView) findViewById(R.id.edittexid);
+       // TextView name = (TextView) findViewById(R.id.edittextname);
         TextView location = (TextView) findViewById(R.id.edittextlocation);
         TextView description = (TextView) findViewById(R.id.edittextdescription);
         Button btninsert = (Button) findViewById(R.id.btnadd);
@@ -96,9 +101,18 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
                     ConnectionHelper connectionHelper = new ConnectionHelper();
                     connection = connectionHelper.connectionclass();
                     if (connection != null) {
-                        String sqlinsert = "Insert into Garage values ('" + id.getText().toString() + "','" + name.getText().toString() + "','" + location.getText().toString() + "','" + description.getText().toString() + "')";
+                       // String sqlinsert = "Insert into Garage values ('"+ location.getText().toString() + "','" + description.getText().toString() + "')";
+                        String sqlinsert = "INSERT INTO Garage1 (Location, Description) VALUES ('" + location.getText().toString() + "','" + description.getText().toString() + "')";
+
                         Statement st = connection.createStatement();
-                        ResultSet rs = st.executeQuery(sqlinsert);
+                        //ResultSet rs = st.executeQuery(sqlinsert);
+                        int rowsAffected = st.executeUpdate(sqlinsert);
+                        if (rowsAffected > 0) {
+                            Log.d("Insertion", "Data inserted successfully");
+                        } else {
+                            Log.d("Insertion", "Failed to insert data");
+                        }
+                        connection.close();
                     }
                 } catch (Exception exception) {
                     Log.e("Error", exception.getMessage());
@@ -121,8 +135,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         ListItem MyData = new ListItem();
         MyDataList = MyData.getlist();
 
-        String[] Fromw={"idList","nameList","locList","desList"};
-        int[] Tow={R.id.idList,R.id.nameList,R.id.locList,R.id.desList};
+        String[] Fromw={"locList","desList"};
+        int[] Tow={R.id.locList,R.id.desList};
         ad = new SimpleAdapter(MainActivity.this,MyDataList,R.layout.datalistlayout,Fromw,Tow);
         for (int i = 0; i < ad.getCount(); i++) {
             View itemView = ad.getView(i, null, tab);
@@ -187,25 +201,26 @@ public void onRobotReady(boolean isReady) {
         List<String> locations = mRobot.getLocations();
         List<String> locations_withou_base = new ArrayList<>(locations.subList(1, locations.size()));
         goToLocations(locations_withou_base);
+        AddLocationToDatabase(locations);
 
     }
 }
 
-
-    private void speakOnArrival(String location) {
-        String tekst = "dojechalem do domu";
-        mRobot.speak(TtsRequest.create(tekst, false));
+private void AddLocationToDatabase(List<String> locations){
+    for (String location : locations){
+    listItem.addLocation(location);
     }
+
+}
+
+
+
     private void speakOnArrival(String location, CompletableFuture<Void> future) {
-        String text = "Jestem robotem Temi, inteligentnym asystentem domowym, zaprojektowanym do" +
-                " ułatwienia codziennego życia poprzez dostarczanie różnorodnych usług i funkcji. Moje zadania " +
-                "obejmują nawigację po domu, dostarczanie informacji, wykonywanie poleceń głosowych, odtwarzanie multimediów " +
-                "oraz wiele innych. Wyposażony jestem w zaawansowane czujniki i technologie, które umożliwiają mi bezpieczną i efektywną" +
-                " interakcję z użytkownikami. Dzięki moim zdolnościom mogę usprawnić organizację domu, zapewniając wygodę i komfort dla " +
-                "wszystkich domowników." +
-                "" ;
-        TtsRequest ttsRequest = TtsRequest.create(text, false);
+        String text = listItem.getDescriptionByLocation(location);
+
+        TtsRequest ttsRequest = TtsRequest.create(text, false, TtsRequest.Language.PL_PL);
         mRobot.speak(ttsRequest);
+
 
         mRobot.addTtsListener(new Robot.TtsListener() {
             @Override
@@ -296,5 +311,10 @@ public void onRobotReady(boolean isReady) {
         for (String location : list) {
             Log.d("LocationsUpdated", "Location: " + location);
         }
+    }
+
+    @Override
+    public void onAsrResult(@NonNull String s) {
+
     }
 }

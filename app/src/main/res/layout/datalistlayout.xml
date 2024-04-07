@@ -34,22 +34,6 @@
                     android:background="@android:color/darker_gray">
 
                     <TextView
-                        android:id="@+id/idList"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="8dp"
-                        android:text="ID"
-                        android:textColor="@android:color/white" />
-
-                    <TextView
-                        android:id="@+id/nameList"
-                        android:layout_width="470dp"
-                        android:layout_height="wrap_content"
-                        android:padding="8dp"
-                        android:text="Name"
-                        android:textColor="@android:color/white" />
-
-                    <TextView
                         android:id="@+id/locList"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
