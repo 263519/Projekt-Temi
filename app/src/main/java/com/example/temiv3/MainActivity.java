@@ -20,10 +20,15 @@ import android.widget.TextView;
 import com.robotemi.sdk.Robot;
 import com.robotemi.sdk.TtsRequest;
 
+
+import com.robotemi.sdk.listeners.OnDetectionStateChangedListener;
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnLocationsUpdatedListener;
 import com.robotemi.sdk.listeners.OnRobotReadyListener;
+import com.robotemi.sdk.navigation.listener.OnCurrentPositionChangedListener;
 import com.robotemi.sdk.navigation.model.Position;
+import com.robotemi.sdk.permission.OnRequestPermissionResultListener;
+import com.robotemi.sdk.permission.Permission;
 import com.robotemi.sdk.sequence.OnSequencePlayStatusChangedListener;
 
 import java.sql.Connection;
@@ -41,7 +46,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 
-public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener, Robot.AsrListener {
+public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener, Robot.AsrListener, OnDetectionStateChangedListener, OnCurrentPositionChangedListener, OnRequestPermissionResultListener {
 
 
 
@@ -59,6 +64,12 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
         // Initialize robot instance`
         mRobot = Robot.getInstance();
+        mRobot.requestToBeKioskApp();
+
+        Log.d(TAG, String.format("Permission: %s ",mRobot.checkSelfPermission(Permission.FACE_RECOGNITION)));
+        mRobot.setKioskModeOn(true);
+      //  mRobot.setDetectionModeOn(true, 2.0f);
+
 
         listItem = new ListItem();
 
@@ -135,12 +146,17 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
     protected void onStart() {
         super.onStart();
 
+
         // Add robot event listeners
+
+
         mRobot.addTtsListener(this);
         mRobot.addOnRobotReadyListener(this);
         mRobot.addOnGoToLocationStatusChangedListener(this);
         mRobot.addOnSequencePlayStatusChangedListener(this);
         mRobot.addOnLocationsUpdatedListener(this);
+        mRobot.addOnDetectionStateChangedListener(this);
+        mRobot.addOnCurrentPositionChangedListener(this);
     }
 /////////////////////////////
     @Override
@@ -153,6 +169,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         mRobot.removeOnRobotReadyListener(this);
         mRobot.removeOnGoToLocationStatusChangedListener(this);
         mRobot.removeOnLocationsUpdateListener(this);
+        mRobot.removeOnDetectionStateChangedListener(this);
+        mRobot.removeOnCurrentPositionChangedListener(this);
 
 
     }
@@ -177,7 +195,7 @@ public void onRobotReady(boolean isReady) {
 
     }
 }
-
+//////////////////
 private void AddLocationToDatabase(List<String> locations){
     for (String location : locations){
     listItem.addLocation(location);
@@ -186,13 +204,119 @@ private void AddLocationToDatabase(List<String> locations){
 }
 
 
-
-    private void speakOnArrival(String location, CompletableFuture<Void> future) {
+/////////////////////
+  /*  private void speakOnArrival(String location, CompletableFuture<Void> future) {
         String text = listItem.getDescriptionByLocation(location);
 
         TtsRequest ttsRequest = TtsRequest.create(text, false, TtsRequest.Language.PL_PL);
+        Log.d(TAG, String.format("IS Detection mode ON1: %s ", mRobot.isDetectionModeOn()));
+        mRobot.setDetectionModeOn(true);
+        Log.d(TAG, String.format("IS KIOSK mode ON: %s ", mRobot.isSelectedKioskApp()));
+        Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
+
+
+
+            mRobot.addOnCurrentPositionChangedListener(new OnCurrentPositionChangedListener() {
+                public void onCurrentPositionChanged(@NonNull Position position) {
+                    Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
+                    List<Object> RobotPos = new ArrayList<>();
+                    float posX = position.getX(); // [m]
+                    float posY = position.getY(); // [m]
+                    float yaw = position.getYaw() ; // [deg] // krecenie
+                    int tilt = position.getTiltAngle(); // [deg]
+
+                    Position pose = new Position(posX, posY, yaw, tilt);
+                    mRobot.goToPosition(pose);
+
+                    if (mRobot.isDetectionModeOn()) {
+                        Log.d(TAG, String.format("Current Pose: X=%f, Y=%f, Yaw=%f, TiltAngle=%d ", posX, posY, yaw, tilt));
+
+                    }
+
+
+                }
+
+
+            });
+            mRobot.addOnDetectionStateChangedListener(new OnDetectionStateChangedListener() {
+                @Override
+                public void onDetectionStateChanged(int i) {
+                    if(i == 2){
+                        mRobot.setDetectionModeOn(false);
+                    }
+
+                }
+            });
+
+
+
+
+
+
         mRobot.speak(ttsRequest);
 
+
+        mRobot.addTtsListener(new Robot.TtsListener() {
+            @Override
+            public void onTtsStatusChanged(TtsRequest ttsRequest) {
+
+
+
+                if (ttsRequest.getStatus() == TtsRequest.Status.COMPLETED) {
+                    future.complete(null); // Oznacz CompletableFuture jako ukończony po zakończeniu wypowiedzi
+                }
+            }
+        });
+    }*/
+
+
+    private void speakOnArrival(String location, CompletableFuture<Void> future) {
+        String text = listItem.getDescriptionByLocation(location);
+       boolean isRotate = false;
+        if(text == null){
+            text = "Witam";
+            isRotate = true;
+
+        }
+        final boolean isrotate = isRotate;
+        TtsRequest ttsRequest = TtsRequest.create(text, false, TtsRequest.Language.PL_PL);
+        Log.d(TAG, String.format("IS Detection mode ON1: %s ", mRobot.isDetectionModeOn()));
+        mRobot.setDetectionModeOn(true);
+        Log.d(TAG, String.format("IS KIOSK mode ON: %s ", mRobot.isSelectedKioskApp()));
+        Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
+        final int[] isFace = {0};
+        mRobot.addOnDetectionStateChangedListener(new OnDetectionStateChangedListener() {
+            @Override
+            public void onDetectionStateChanged(int i) {
+                  isFace[0] = i;
+                if (i == 2) {
+                    mRobot.setDetectionModeOn(false);
+                    mRobot.speak(ttsRequest);
+                }
+            }
+        });
+
+        mRobot.addOnCurrentPositionChangedListener(new OnCurrentPositionChangedListener() {
+            public void onCurrentPositionChanged(@NonNull Position position) {
+               // Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
+                List<Object> RobotPos = new ArrayList<>();
+                float posX = position.getX(); // [m]
+                float posY = position.getY(); // [m]
+                float yaw = 11234.80f;//-position.getYaw() ; // [deg] // krecenie
+                int tilt = position.getTiltAngle(); // [deg]
+
+                Position pose = new Position(posX, posY, yaw, tilt);
+
+
+                //if (mRobot.isDetectionModeOn()) {
+                  if(isFace[0] != 2 && !isrotate ){
+                    Log.d(TAG, String.format("Current Pose: X=%f, Y=%f, Yaw=%f, TiltAngle=%d FaceID=%d", posX, posY, yaw, tilt ,isFace[0]));
+                      mRobot.goToPosition(pose);
+                    mRobot.removeOnCurrentPositionChangedListener(this);
+
+                  }
+            }
+        });
 
         mRobot.addTtsListener(new Robot.TtsListener() {
             @Override
@@ -204,7 +328,7 @@ private void AddLocationToDatabase(List<String> locations){
         });
     }
 
-
+    ///////////////////////////
     private void goToLocations(List<String> locations) {
         CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
         for (String location : locations) {
@@ -220,14 +344,14 @@ private void AddLocationToDatabase(List<String> locations){
                             mRobot.stopMovement(); // Zatrzymaj ruch robota po dotarciu do lokalizacji
                             speakOnArrival(location, goToFuture); // Wywołaj metodę mówienia, a następnie przekaż CompletableFuture dla kontynuacji
 
-                            //goToFuture.complete(null);
+
 
                         }
 
                     }
                 });
 
-              //  mRobot.goTo(location);
+                mRobot.goTo(location);
 
 
                 return goToFuture;
@@ -240,7 +364,7 @@ private void AddLocationToDatabase(List<String> locations){
         });
     }
 
-
+/////////////////////////////
     @Override
     public void onGoToLocationStatusChanged(@NonNull String location, @NonNull String status, int  descriptionId, @NonNull String description) {
 
@@ -250,13 +374,13 @@ private void AddLocationToDatabase(List<String> locations){
 
 
     }
-
+///////////////////////
     @Override
     public void onTtsStatusChanged(@NonNull TtsRequest ttsRequest) {
         @NonNull String stat = ttsRequest.getStatus().name();
         Log.d(TAG, String.format("TTS Status: %s", stat));
     }
-
+/////////////////////////
     @Override
     public void onSequencePlayStatusChanged(int i) {
         @NonNull String state= "" ;
@@ -277,16 +401,55 @@ private void AddLocationToDatabase(List<String> locations){
         Log.d(TAG, String.format("SequenceStatus: %s ", state));
         //Log.d(TAG, String.format("SequenceStatusINT: %s ", i));
     }
-
+/////////////////////////////////
     @Override
     public void onLocationsUpdated(@NonNull List<String> list) {
         for (String location : list) {
             Log.d("LocationsUpdated", "Location: " + location);
         }
     }
-
+///////////////////////////////////////
     @Override
     public void onAsrResult(@NonNull String s) {
 
     }
+
+    @Override
+    public void onDetectionStateChanged(int i) {
+        @NonNull String state= "" ;
+        switch (i) {
+            case 0:
+                state = "No active detection occurring and 4 seconds have passed since last detection was lost";
+                break;
+            case 1:
+                state = "Target detected lost";
+                break;
+            case 2:
+                state = "Human body is detected";
+                break;
+
+
+        }
+        Log.d(TAG, String.format("Detected status: %s ", state));
+    }
+
+    @Override
+    public void onCurrentPositionChanged(@NonNull Position position) {
+        List<Object> i = new ArrayList<>();
+        i.add(position.getX());
+        i.add(position.getY());
+        i.add(position.getYaw());
+        i.add(position.getTiltAngle());
+        if(mRobot.isDetectionModeOn()) {
+            Log.d(TAG, String.format("Generall Current Pose: X=%f, Y=%f, Yaw=%f, TiltAngle=%d ", (float) i.get(0), (float) i.get(1), (float) i.get(2), (int) i.get(3)));
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionResult(@NonNull Permission permission, int i, int i1) {
+
+    }
+
+    ///////////////////////////////////
 }
