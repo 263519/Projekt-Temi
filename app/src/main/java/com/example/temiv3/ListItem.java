@@ -30,7 +30,7 @@ public class ListItem {
              ConnectionHelper connectionHelper = new ConnectionHelper();
              connection = connectionHelper.connectionclass();
              if (connection != null) {
-                 String sqlinsert = "select * from Garage1";
+                 String sqlinsert = "select * from Garage";
                  Statement st = connection.createStatement();
                  ResultSet rs = st.executeQuery(sqlinsert);
                  while (rs.next()){
@@ -61,7 +61,7 @@ public class ListItem {
             connection = connectionHelper.connectionclass();
             if (connection != null) {
                 // Sprawdź, czy lokalizacja już istnieje w bazie danych
-                String checkQuery = "SELECT COUNT(*) AS count FROM Garage1 WHERE Location = ?";
+                String checkQuery = "SELECT COUNT(*) AS count FROM Garage WHERE Location = ?";
                 PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
                 checkStatement.setString(1, location);
                 ResultSet resultSet = checkStatement.executeQuery();
@@ -74,7 +74,7 @@ public class ListItem {
                 }
 
                 // Dodaj lokalizację do bazy danych
-                String sqlInsert = "INSERT INTO Garage1 (Location) VALUES (?)";
+                String sqlInsert = "INSERT INTO Garage (Location) VALUES (?)";
                 PreparedStatement statement = connection.prepareStatement(sqlInsert);
                 statement.setString(1, location);
                 int rowsAffected = statement.executeUpdate();
@@ -85,7 +85,36 @@ public class ListItem {
         }
 
     }
+    public void deleteLocation(String location) {
+        try {
+            ConnectionHelper connectionHelper = new ConnectionHelper();
+            connection = connectionHelper.connectionclass();
+            if (connection != null) {
+                // Sprawdź, czy lokalizacja istnieje w bazie danych
+                String checkQuery = "SELECT COUNT(*) AS count FROM Garage WHERE Location = ?";
+                PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
+                checkStatement.setString(1, location);
+                ResultSet resultSet = checkStatement.executeQuery();
+                resultSet.next();
+                int count = resultSet.getInt("count");
+                if (count == 0) {
+                    Log.d("Delete Location", "Location does not exist in the database");
+                    connection.close();
+                    return; // Lokalizacja nie istnieje, nie ma potrzeby usuwać
+                }
 
+                // Usuń lokalizację z bazy danych
+                String deleteQuery = "DELETE FROM Garage WHERE Location = ?";
+                PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery);
+                deleteStatement.setString(1, location);
+                int rowsAffected = deleteStatement.executeUpdate();
+                Log.d("Delete Location", "Location deleted successfully");
+                connection.close();
+            }
+        } catch (Exception exception) {
+            Log.e("Error", exception.getMessage());
+        }
+    }
 
 
     public String getDescriptionByLocation(String location) {
@@ -94,7 +123,7 @@ public class ListItem {
             ConnectionHelper connectionHelper = new ConnectionHelper();
             connection = connectionHelper.connectionclass();
             if (connection != null) {
-                String sqlQuery = "SELECT Description FROM Garage1 WHERE Location = ?";
+                String sqlQuery = "SELECT Description FROM Garage WHERE Location = ?";
                 PreparedStatement statement = connection.prepareStatement(sqlQuery);
                 statement.setString(1, location);
                 ResultSet resultSet = statement.executeQuery();
@@ -115,7 +144,7 @@ public class ListItem {
             ConnectionHelper connectionHelper = new ConnectionHelper();
             Connection connection = connectionHelper.connectionclass();
             if (connection != null) {
-                String sqlUpdate = "UPDATE Garage1 SET Description = ? WHERE Location = ?";
+                String sqlUpdate = "UPDATE Garage SET Description = ? WHERE Location = ?";
                 PreparedStatement statement = connection.prepareStatement(sqlUpdate);
                 statement.setString(1, newDescription);
                 statement.setString(2, location);

@@ -87,8 +87,21 @@ public class DataList extends AppCompatActivity {
             });
         }
     }
+
     public void GetList(View v) {
         setContentView(R.layout.datalistlayout);
+
+
+        Button exitButton = findViewById(R.id.exitButton);
+        exitButton.setVisibility(View.VISIBLE);
+
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish(); // Zakończ bieżącą aktywność po kliknięciu na guzik
+            }
+        });
+
 
         ListItem MyData = new ListItem();
         List<Map<String, String>> MyDataList = MyData.getlist();
@@ -132,6 +145,8 @@ public class DataList extends AppCompatActivity {
                 }
             });
         }
+
+
     }
 
 

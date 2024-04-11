@@ -21,8 +21,6 @@
         app:layout_constraintVertical_bias="0.0" />
 
 
-
-
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
@@ -30,6 +28,7 @@
         android:layout_marginStart="820dp"
         android:layout_marginTop="456dp"
         android:text="Location"
+        app:layout_constraintEnd_toEndOf="@+id/edittextlocation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -37,12 +36,12 @@
         android:id="@+id/edittextlocation"
         android:layout_width="348dp"
         android:layout_height="71dp"
-        android:layout_marginStart="812dp"
         android:layout_marginTop="520dp"
         android:ems="10"
         android:inputType="text"
 
         android:text="address"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -50,9 +49,9 @@
         android:id="@+id/btnadd"
         android:layout_width="152dp"
         android:layout_height="73dp"
-        android:layout_marginStart="852dp"
         android:layout_marginTop="868dp"
         android:text="Add"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -64,6 +63,7 @@
         android:layout_marginTop="672dp"
 
         android:text="Desctipton"
+        app:layout_constraintEnd_toEndOf="@+id/edittextdescription"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -71,11 +71,11 @@
         android:id="@+id/edittextdescription"
         android:layout_width="343dp"
         android:layout_height="65dp"
-        android:layout_marginStart="816dp"
         android:layout_marginTop="716dp"
         android:ems="10"
         android:inputType="text"
         android:text="Name"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -88,4 +88,34 @@
         android:text="List"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/gobutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/edittextlocation"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/goAllbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go All"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/edittextlocation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Switch
+        android:id="@+id/switchDarkMode"
+        android:layout_width="122dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="Dark Mode"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

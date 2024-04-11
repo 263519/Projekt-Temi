@@ -10,9 +10,13 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
+
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.ViewCompat;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.SimpleAdapter;
+import android.widget.Switch;
 import android.widget.TableLayout;
 import android.widget.TextView;
 
@@ -55,6 +59,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
     public static final String TAG = MainActivity.class.getSimpleName();
     public static Robot mRobot;
 
+    public List<String> locationsRobot = mRobot.getLocations();
+
     ListItem listItem;
 
     @Override
@@ -82,8 +88,24 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             }
         });
 
-      //  TextView id = (TextView) findViewById(R.id.edittexid);
-       // TextView name = (TextView) findViewById(R.id.edittextname);
+        Switch switchDarkMode = findViewById(R.id.switchDarkMode);
+        switchDarkMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                }
+               // recreate(); // Apply the new theme
+            }
+        });
+
+
+
+
+
+
         TextView location = (TextView) findViewById(R.id.edittextlocation);
         TextView description = (TextView) findViewById(R.id.edittextdescription);
         Button btninsert = (Button) findViewById(R.id.btnadd);
@@ -113,8 +135,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
                     connection = connectionHelper.connectionclass();
                     if (connection != null) {
                        // String sqlinsert = "Insert into Garage values ('"+ location.getText().toString() + "','" + description.getText().toString() + "')";
-                        String sqlinsert = "INSERT INTO Garage1 (Location, Description) VALUES ('" + location.getText().toString() + "','" + description.getText().toString() + "')";
-
+                        String sqlinsert = "INSERT INTO Garage (Location, Description) VALUES ('" + location.getText().toString() + "','" + description.getText().toString() + "')";
+                        saveLocation(location);
                         Statement st = connection.createStatement();
                         //ResultSet rs = st.executeQuery(sqlinsert);
                         int rowsAffected = st.executeUpdate(sqlinsert);
@@ -188,10 +210,30 @@ public void onRobotReady(boolean isReady) {
             throw new RuntimeException(e);
         }
 
-        List<String> locations = mRobot.getLocations();
-        List<String> locations_withou_base = new ArrayList<>(locations.subList(1, locations.size()));
-        goToLocations(locations_withou_base);
-        AddLocationToDatabase(locations);
+
+        List<String> locations_withou_base = new ArrayList<>(locationsRobot.subList(1, locationsRobot.size()));
+
+
+        //goToLocations(locations_withou_base);
+        Button goButton = findViewById(R.id.gobutton);
+        goButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToLocations(locations_withou_base);
+            }
+        });
+
+        Button goAllButton = findViewById(R.id.goAllbutton);
+        goAllButton.setOnClickListener(new View.OnClickListener() {
+
+
+            @Override
+            public void onClick(View v) {
+                goToLocations(locationsRobot);
+            }
+        });
+
+        AddLocationToDatabase(locationsRobot);
 
     }
 }
@@ -202,6 +244,24 @@ private void AddLocationToDatabase(List<String> locations){
     }
 
 }
+
+
+
+    private void saveLocation(TextView textlocation) {
+        String location = textlocation.getText().toString().toLowerCase().trim();
+        boolean result = mRobot.saveLocation(location);
+        if (result) {
+
+            Log.d(TAG, String.format("I've successfully saved the %s", location));
+        } else {
+
+            Log.d(TAG, String.format("Saved the %s location failed", location));
+        }
+
+    }
+
+
+
 
 
 /////////////////////
@@ -281,9 +341,10 @@ private void AddLocationToDatabase(List<String> locations){
         final boolean isrotate = isRotate;
         TtsRequest ttsRequest = TtsRequest.create(text, false, TtsRequest.Language.PL_PL);
         Log.d(TAG, String.format("IS Detection mode ON1: %s ", mRobot.isDetectionModeOn()));
+
         mRobot.setDetectionModeOn(true);
         Log.d(TAG, String.format("IS KIOSK mode ON: %s ", mRobot.isSelectedKioskApp()));
-        Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
+
         final int[] isFace = {0};
         mRobot.addOnDetectionStateChangedListener(new OnDetectionStateChangedListener() {
             @Override
@@ -291,7 +352,9 @@ private void AddLocationToDatabase(List<String> locations){
                   isFace[0] = i;
                 if (i == 2) {
                     mRobot.setDetectionModeOn(false);
+                    Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
                     mRobot.speak(ttsRequest);
+                    mRobot.removeOnDetectionStateChangedListener(this);
                 }
             }
         });
@@ -302,16 +365,20 @@ private void AddLocationToDatabase(List<String> locations){
                 List<Object> RobotPos = new ArrayList<>();
                 float posX = position.getX(); // [m]
                 float posY = position.getY(); // [m]
-                float yaw = 11234.80f;//-position.getYaw() ; // [deg] // krecenie
+                float yaw =position.getYaw() ; // [deg] // krecenie
                 int tilt = position.getTiltAngle(); // [deg]
 
-                Position pose = new Position(posX, posY, yaw, tilt);
+                //Position pose = new Position(posX, posY, yaw, tilt);
 
 
-                //if (mRobot.isDetectionModeOn()) {
-                  if(isFace[0] != 2 && !isrotate ){
+
+                  if(isFace[0] != 2 ){
                     Log.d(TAG, String.format("Current Pose: X=%f, Y=%f, Yaw=%f, TiltAngle=%d FaceID=%d", posX, posY, yaw, tilt ,isFace[0]));
-                      mRobot.goToPosition(pose);
+
+                     // mRobot.goToPosition(pose);
+                     // mRobot.stopMovement();
+
+
                     mRobot.removeOnCurrentPositionChangedListener(this);
 
                   }
@@ -320,8 +387,8 @@ private void AddLocationToDatabase(List<String> locations){
 
         mRobot.addTtsListener(new Robot.TtsListener() {
             @Override
-            public void onTtsStatusChanged(TtsRequest ttsRequest) {
-                if (ttsRequest.getStatus() == TtsRequest.Status.COMPLETED) {
+            public void onTtsStatusChanged(TtsRequest ttsRequest ) {
+                if (ttsRequest.getStatus() == TtsRequest.Status.COMPLETED ) {
                     future.complete(null); // Oznacz CompletableFuture jako ukończony po zakończeniu wypowiedzi
                 }
             }
