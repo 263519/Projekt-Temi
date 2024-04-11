@@ -59,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
     public static final String TAG = MainActivity.class.getSimpleName();
     public static Robot mRobot;
 
-    public List<String> locationsRobot = mRobot.getLocations();
-
     ListItem listItem;
 
     @Override
@@ -136,11 +134,12 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
                     if (connection != null) {
                        // String sqlinsert = "Insert into Garage values ('"+ location.getText().toString() + "','" + description.getText().toString() + "')";
                         String sqlinsert = "INSERT INTO Garage (Location, Description) VALUES ('" + location.getText().toString() + "','" + description.getText().toString() + "')";
-                        saveLocation(location);
+                       
                         Statement st = connection.createStatement();
                         //ResultSet rs = st.executeQuery(sqlinsert);
                         int rowsAffected = st.executeUpdate(sqlinsert);
                         if (rowsAffected > 0) {
+                            saveLocation(location);
                             Log.d("Insertion", "Data inserted successfully");
                         } else {
                             Log.d("Insertion", "Failed to insert data");
@@ -211,7 +210,8 @@ public void onRobotReady(boolean isReady) {
         }
 
 
-        List<String> locations_withou_base = new ArrayList<>(locationsRobot.subList(1, locationsRobot.size()));
+       // List<String> locations = mRobot.getLocations();
+        //List<String> locations_withou_base = new ArrayList<>(locations.subList(1, locations.size()));
 
 
         //goToLocations(locations_withou_base);
@@ -219,21 +219,23 @@ public void onRobotReady(boolean isReady) {
         goButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                List<String> locations = mRobot.getLocations();
+                List<String> locations_withou_base = new ArrayList<>(locations.subList(1, locations.size()));
                 goToLocations(locations_withou_base);
             }
         });
 
         Button goAllButton = findViewById(R.id.goAllbutton);
         goAllButton.setOnClickListener(new View.OnClickListener() {
-
-
             @Override
             public void onClick(View v) {
-                goToLocations(locationsRobot);
+                List<String> locations = mRobot.getLocations();
+
+                goToLocations(locations);
             }
         });
-
-        AddLocationToDatabase(locationsRobot);
+        List<String> loc = mRobot.getLocations();
+        AddLocationToDatabase(loc);
 
     }
 }
@@ -247,8 +249,8 @@ private void AddLocationToDatabase(List<String> locations){
 
 
 
-    private void saveLocation(TextView textlocation) {
-        String location = textlocation.getText().toString().toLowerCase().trim();
+    private void saveLocation(TextView textlocat) {
+        String location = textlocat.getText().toString().toLowerCase().trim();
         boolean result = mRobot.saveLocation(location);
         if (result) {
 
@@ -344,7 +346,8 @@ private void AddLocationToDatabase(List<String> locations){
 
         mRobot.setDetectionModeOn(true);
         Log.d(TAG, String.format("IS KIOSK mode ON: %s ", mRobot.isSelectedKioskApp()));
-
+        Log.d(TAG, String.format("IS Detection mode ON3: %s ", mRobot.isDetectionModeOn()));
+       // mRobot.speak(ttsRequest);
         final int[] isFace = {0};
         mRobot.addOnDetectionStateChangedListener(new OnDetectionStateChangedListener() {
             @Override
