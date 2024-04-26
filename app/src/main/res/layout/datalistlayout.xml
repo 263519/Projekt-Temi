@@ -55,6 +55,12 @@
                         android:padding="8dp"
                         android:textColor="@android:color/white"
                         android:visibility="gone" />
+
+                    <CheckBox
+                        android:id="@+id/checkBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Location" />
                 </TableRow>
             </TableLayout>
         </LinearLayout>
@@ -65,7 +71,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:text="Wyjście"
+        android:text="Exit"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

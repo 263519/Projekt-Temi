@@ -5,7 +5,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TableLayout;
 import android.widget.Toast;
@@ -16,11 +19,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class DataList extends AppCompatActivity {
-
+    private List<String> checkedCheckboxesNames = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,9 +71,21 @@ public class DataList extends AppCompatActivity {
 
             Button button = new Button(this);
             button.setText(local);
+            CheckBox box = new CheckBox(this);
+            box.setText(local);
 
-
+            tab.addView(box);
             tab.addView(button);
+            box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        checkedCheckboxesNames.add(local); // Dodaj nazwę zaznaczonego checkboxa do listy
+                    } else {
+                        checkedCheckboxesNames.remove(local); // Usuń nazwę checkboxa z listy, jeśli zostanie odznaczony
+                    }
+                }
+            });
 
 
             button.setOnClickListener(new View.OnClickListener() {
@@ -98,7 +114,16 @@ public class DataList extends AppCompatActivity {
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                for(String name : checkedCheckboxesNames) {
+                    Log.d("CheckedBox Add", String.format("Pos to main Finish %s", name));
+                }
+                Intent intent = new Intent(DataList.this, MainActivity.class);
+
+                // Dodajemy listę nazw zaznaczonych checkboxów do intentu
+                intent.putStringArrayListExtra("checkedCheckboxNames", new ArrayList<>(checkedCheckboxesNames));
+                startActivity(intent);
                 finish(); // Zakończ bieżącą aktywność po kliknięciu na guzik
+
             }
         });
 
@@ -126,9 +151,21 @@ public class DataList extends AppCompatActivity {
 
             Button button = new Button(this);
             button.setText(local);
+            CheckBox box = new CheckBox(this);
+            box.setText(local);
 
-
+            tab.addView(box);
             tab.addView(button);
+            box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        checkedCheckboxesNames.add(local);
+                    } else {
+                        checkedCheckboxesNames.remove(local);
+                    }
+                }
+            });
 
 
             button.setOnClickListener(new View.OnClickListener() {
