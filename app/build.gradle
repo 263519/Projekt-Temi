@@ -24,8 +24,6 @@ android {
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 }
 
 dependencies {
@@ -33,12 +31,13 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
-    implementation files('C:\\Users\\PRO\\AndroidStudioProjects\\Temiv3\\app\\libs\\jtds-1.3.1.jar')
+    //implementation files('C:\\Users\\PRO\\AndroidStudioProjects\\Temiv3\\app\\libs\\jtds-1.3.1.jar')
     //implementation files('C:\\Users\\PRO\\AndroidStudioProjects\\Temiv3\\app\\libs\\mysql-connector-j-8.3.0.jar')
     //implementation 'mysql:mysql-connector-java:8.0.30'
     //implementation group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.3.3'
     //implementation files('C:\\mysql-connector-j-8.3.0.jar')
    // implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
+    implementation files('D:\\Program Files\\Android\\jtds-1.3.1.jar')
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

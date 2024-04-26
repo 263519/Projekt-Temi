@@ -82,6 +82,38 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" /> -->
 
+    <FrameLayout
+        android:layout_width="961dp"
+        android:layout_height="906dp"
+        android:background="#FF0000"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"></FrameLayout>
+
+
+    <FrameLayout
+        android:layout_width="961dp"
+        android:layout_height="906dp"
+        android:layout_marginStart="1205dp"
+        android:background="#A9CCE3"
+        android:layout_gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:textSize="20mm"
+            android:textColor="@color/black"
+            android:text="MAP">
+
+        </TextView>
+
+    </FrameLayout>
 
     <Button
         android:id="@+id/AddLoc"
@@ -171,6 +203,7 @@
         android:layout_marginStart="444dp"
         android:text="NextPosition"
         app:layout_constraintBottom_toBottomOf="parent"
+
 
 
         app:layout_constraintStart_toStartOf="parent"
