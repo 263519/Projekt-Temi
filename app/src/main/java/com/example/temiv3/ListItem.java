@@ -55,7 +55,97 @@ public class ListItem {
       }
 
 
-    public boolean addLocation(String location,String description) {
+    public List<Map<String,String>>getCurrentMapList()
+    {
+        List<Map<String,String>> data = null;
+        data = new ArrayList<Map<String,String>>();
+
+
+        try {
+            ConnectionHelper connectionHelper = new ConnectionHelper();
+            connection = connectionHelper.connectionclass();
+            if (connection != null) {
+                // Znajdź MapID na podstawie MapName w tabeli SavedMaps
+                String mapQuery = "SELECT MapID FROM SavedMaps WHERE MapName = ?";
+                PreparedStatement mapStatement = connection.prepareStatement(mapQuery);
+                mapStatement.setString(1, MainActivity.MapName);
+                ResultSet mapResultSet = mapStatement.executeQuery();
+
+                if (mapResultSet.next()) {
+                    int mapID = mapResultSet.getInt("MapID");
+
+                    // Pobierz dane z tabeli Garage na podstawie MapID
+                    String sqlSelect = "SELECT Location, Description FROM Garage WHERE MapID = ?";
+                    PreparedStatement statement = connection.prepareStatement(sqlSelect);
+                    statement.setInt(1, mapID);
+                    ResultSet rs = statement.executeQuery();
+
+                    while (rs.next()) {
+                        Map<String, String> dtname = new HashMap<>();
+                        dtname.put("locList", rs.getString("Location"));
+                        dtname.put("desList", rs.getString("Description"));
+                        data.add(dtname);
+                    }
+
+                    ConnectionResult = "Success";
+                    isSuucess = true;
+                } else {
+                    ConnectionResult = "MapName not found";
+                    isSuucess = false;
+                }
+
+                connection.close();
+            } else {
+                ConnectionResult = "Failed";
+            }
+        } catch (Exception exception) {
+            Log.e("Error", exception.getMessage());
+        }
+
+        return data;
+    }
+
+
+//    public boolean addLocation(String location,String description) {
+//        try {
+//            ConnectionHelper connectionHelper = new ConnectionHelper();
+//            connection = connectionHelper.connectionclass();
+//            if (connection != null) {
+//                // Sprawdź, czy lokalizacja już istnieje w bazie danych
+//                String checkQuery = "SELECT COUNT(*) AS count FROM Garage WHERE Location = ?";
+//                PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
+//                checkStatement.setString(1, location);
+//                ResultSet resultSet = checkStatement.executeQuery();
+//                resultSet.next();
+//                int count = resultSet.getInt("count");
+//                if (count > 0) {
+//                    Log.d("Add Location", "Location already exists in the database");
+//                    connection.close();
+//                    return false; // Lokalizacja już istnieje, nie dodawaj ponownie
+//                }
+//
+//                // Dodaj lokalizację do bazy danych
+//                //String sqlInsert = "INSERT INTO Garage (Location) VALUES (?)";
+//                String sqlInsert = "INSERT INTO Garage (Location, Description) VALUES (?, ?)";
+//                PreparedStatement statement = connection.prepareStatement(sqlInsert);
+//                statement.setString(1, location);
+//                statement.setString(2, description);
+//                int rowsAffected = statement.executeUpdate();
+//
+//                connection.close();
+//                return true;
+//            }
+//        } catch (Exception exception) {
+//
+//            Log.e("Error", exception.getMessage());
+//            return false;
+//        }
+//        return false;
+//    }
+
+
+
+    public boolean addLocation(String location,String description,String mapName) {
         try {
             ConnectionHelper connectionHelper = new ConnectionHelper();
             connection = connectionHelper.connectionclass();
@@ -73,16 +163,31 @@ public class ListItem {
                     return false; // Lokalizacja już istnieje, nie dodawaj ponownie
                 }
 
-                // Dodaj lokalizację do bazy danych
-                //String sqlInsert = "INSERT INTO Garage (Location) VALUES (?)";
-                String sqlInsert = "INSERT INTO Garage (Location, Description) VALUES (?, ?)";
-                PreparedStatement statement = connection.prepareStatement(sqlInsert);
-                statement.setString(1, location);
-                statement.setString(2, description);
-                int rowsAffected = statement.executeUpdate();
+                // Znajdz MapID po mapName w  SavedMaps
+                String mapQuery = "SELECT MapID FROM SavedMaps WHERE MapName = ?";
+                PreparedStatement mapStatement = connection.prepareStatement(mapQuery);
+                mapStatement.setString(1, mapName);
+                ResultSet mapResultSet = mapStatement.executeQuery();
 
-                connection.close();
-                return true;
+                if (mapResultSet.next()) {
+                    int mapID = mapResultSet.getInt("MapID");
+
+                    // Dodaj lokalizację do bazy danych
+                    String sqlInsert = "INSERT INTO Garage (Location, Description, MapID) VALUES (?, ?, ?)";
+                    PreparedStatement statement = connection.prepareStatement(sqlInsert);
+                    statement.setString(1, location);
+                    statement.setString(2, description);
+                    statement.setInt(3, mapID);
+
+                    int rowsAffected = statement.executeUpdate();
+
+                    connection.close();
+                    return rowsAffected > 0;
+                } else {
+                    Log.d("Add Location", "MapName not found in the database");
+                    connection.close();
+                    return false;
+                }
             }
         } catch (Exception exception) {
 
@@ -91,6 +196,8 @@ public class ListItem {
         }
         return false;
     }
+
+
 
     public void saveMapUrltoDatabase(String MapName,String filepath) {
         try {

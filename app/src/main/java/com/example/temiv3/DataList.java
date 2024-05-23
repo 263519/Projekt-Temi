@@ -25,18 +25,32 @@ import java.util.Map;
 
 public class DataList extends AppCompatActivity {
     private List<String> checkedCheckboxesNames = new ArrayList<>();
+
+    public boolean currentMap = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_data);
 
-        Button exitButton = findViewById(R.id.goDJ);
-        exitButton.setOnClickListener(new View.OnClickListener() {
+        Button allLocationsButton = findViewById(R.id.goAllLocations);
+        Button currentLocationsButton = findViewById(R.id.goCurrentMapLocations);
+        allLocationsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 GetList(v);
             }
         });
+
+        currentLocationsButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                currentMap = true;
+                GetList(v);
+            }
+        });
+
+
     }
 
     protected void onResume() {
@@ -122,16 +136,21 @@ public class DataList extends AppCompatActivity {
                 // Dodajemy listę nazw zaznaczonych checkboxów do intentu
                 intent.putStringArrayListExtra("checkedCheckboxNames", new ArrayList<>(checkedCheckboxesNames));
                 startActivity(intent);
-                finish(); // Zakończ bieżącą aktywność po kliknięciu na guzik
+                finish();
 
             }
         });
 
 
         ListItem MyData = new ListItem();
-        List<Map<String, String>> MyDataList = MyData.getlist();
-
-
+        List<Map<String, String>> MyDataList = new ArrayList<Map<String, String>>();
+        // all location
+        if(!currentMap){
+        MyDataList = MyData.getlist();
+        }else {
+            //current map location
+             MyDataList = MyData.getCurrentMapList();
+        }
         TableLayout tab = findViewById(R.id.tableLayout);
         if (tab == null) {
 

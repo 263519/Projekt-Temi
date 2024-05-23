@@ -42,6 +42,8 @@ public class AddLocationActivity extends AppCompatActivity {
         Button btninsert = (Button) findViewById(R.id.btnadd);
         Button exitButton = (Button) findViewById(R.id.exitButton);
 
+
+
         btninsert.setOnClickListener(new View.OnClickListener() {
             Connection connection = null;
             @Override
@@ -53,8 +55,9 @@ public class AddLocationActivity extends AppCompatActivity {
                 if (connection != null) {
                     Log.d(TAG, String.format("TUUU %s", location.getText()));
                     Log.d(TAG, String.format("TUUU %s",description.getText()));
-                    if(listItem.addLocation(location.getText().toString(),description.getText().toString())){
-                        saveLocation(location);
+                    Log.d(TAG, String.format("TUUU %s",MainActivity.MapName));
+                    if(listItem.addLocation(location.getText().toString(),description.getText().toString(),MainActivity.MapName)){
+                        saveLocation(location);// temi must be in other place than home base and not in the same place as previously added locations
                     }
 
 

@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
     public static final String TAG = MainActivity.class.getSimpleName();
     public static Robot mRobot;
+    public static String MapName;
 
     ListItem listItem;
     boolean isDetectionModeOn = false;
@@ -226,10 +227,14 @@ public void onRobotReady(boolean isReady) {
         //
        // getMap("test",maplist);
 
-        //MapDataModel map = mRobot.getMapData();
+        MapDataModel map = mRobot.getMapData();
+        assert map != null;
+        MapName = map.getMapName();
 
-        //String mapId = map.component2();
-       //Log.i("MapData", String.format("MapID: %s",  map.getMapName()));
+
+       // String mapId = map.component2();
+      // Log.i("MapData", String.format("MapID: %s",  map.getMapName()));
+       // Log.i("MapData", String.format("MapName: %s",  map.getMapName()));
 
         Button buttonBackupMap = findViewById(R.id.buttonBackupMap);
         buttonBackupMap.setOnClickListener(new View.OnClickListener() {
@@ -508,7 +513,7 @@ public void onRobotReady(boolean isReady) {
 //////////////////
 private void AddLocationToDatabase(List<String> locations){
     for (String location : locations){
-    listItem.addLocation(location,null);
+    listItem.addLocation(location,null,MapName);
     }
 
 }

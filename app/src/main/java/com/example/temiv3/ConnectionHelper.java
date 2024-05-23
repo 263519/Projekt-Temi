@@ -19,12 +19,14 @@ String ip,port,username,password,databasename;
         //ip ="127.0.0.1";
      //   ip ="10.0.2.2";
          port = "1433";
-        // port = "5222";
+        // port = "5222";///
        // username = "temis";
          username = "sa";
          password = "Oliwia123!@";
 
-         databasename = "Temi";
+         //databasename = "Temi";
+        databasename = "nokia";
+
         // databasename = "temi";
         StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(tp);
