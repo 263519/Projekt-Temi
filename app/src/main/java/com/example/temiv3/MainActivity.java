@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.assist.AssistStructure;
 import android.content.DialogInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.annotation.SuppressLint;
@@ -52,10 +53,14 @@ import com.robotemi.sdk.permission.Permission;
 import com.robotemi.sdk.sequence.OnSequencePlayStatusChangedListener;
 
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -70,7 +75,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener, Robot.AsrListener, OnDetectionStateChangedListener, OnCurrentPositionChangedListener, OnRequestPermissionResultListener {
 
@@ -105,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         buttonExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mRobot.setKioskModeOn(false);
                 mRobot.showAppList();
             }
         });
@@ -164,7 +172,10 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         });
 
 
+
     }
+
+
 
 /////////////////////////////
     @Override

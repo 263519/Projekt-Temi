@@ -50,9 +50,9 @@ public class AddLocationActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // try {
-                ConnectionHelper connectionHelper = new ConnectionHelper();
-                connection = connectionHelper.connectionclass();
-                if (connection != null) {
+              //  ConnectionHelper connectionHelper = new ConnectionHelper();
+              //  connection = connectionHelper.connectionclass();
+              //  if (connection != null) {
                     Log.d(TAG, String.format("TUUU %s", location.getText()));
                     Log.d(TAG, String.format("TUUU %s",description.getText()));
                     Log.d(TAG, String.format("TUUU %s",MainActivity.MapName));
@@ -61,7 +61,7 @@ public class AddLocationActivity extends AppCompatActivity {
                     }
 
 
-                }
+               // }
             }
         });
 
