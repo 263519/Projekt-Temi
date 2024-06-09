@@ -62,7 +62,15 @@ public class DataList extends AppCompatActivity {
     private void refreshData() {
         executorService.execute(() -> {
             ListItem MyData = new ListItem();
-            List<Map<String, String>> MyDataList = MyData.getlist();
+
+            List<Map<String, String>> MyDataList;
+
+            if(!currentMap){
+                 MyDataList = MyData.getlist();
+            }else{
+
+                MyDataList = MyData.getCurrentMapList();
+            }
             mainThreadHandler.post(() -> populateTable(MyDataList));
         });
     }
@@ -108,6 +116,9 @@ public class DataList extends AppCompatActivity {
 
     public void GetList(View v) {
         setContentView(R.layout.datalistlayout);
+
+
+
 
         Button exitButton = findViewById(R.id.exitButton);
         exitButton.setVisibility(View.VISIBLE);

@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -534,7 +535,38 @@ private void AddLocationToDatabase(List<String> locations){
 
 
     private void speakOnArrival(String location, CompletableFuture<Void> future) {
-        String text = listItem.getDescriptionByLocation(location);
+
+
+        String text = null;// = listItem.getDescriptionByLocation(location);
+
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String[] call = {null}; // Tutaj przechowamy odpowiedź
+
+        // Uruchom nowy wątek do pobrania opisu lokalizacji
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // Pobierz opis lokalizacji i przypisz do tablicy call
+                call[0] = listItem.getDescriptionByLocation(location);
+                // Zwalniamy blokadę, gdy odpowiedź zostanie otrzymana
+                latch.countDown();
+            }
+        }).start();
+
+        try {
+            // Czekamy na zakończenie operacji wątku
+            latch.await();
+            // Przypisz wynik do zmiennej text po zwolnieniu blokady
+            text = call[0];
+            Log.e("call", "call " + text);
+            // Możesz teraz użyć zmiennej text do dalszego przetwarzania
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    
+
+
        boolean isRotate = false;
         if(text == null){
             text = "Witam";

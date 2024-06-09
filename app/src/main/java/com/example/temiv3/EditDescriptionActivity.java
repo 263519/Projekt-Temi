@@ -46,6 +46,7 @@ public class EditDescriptionActivity extends AppCompatActivity {
                 Log.d(TAG, String.format("oldDescription: %s", description));
 
                 Handler handler = new Handler();
+
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
