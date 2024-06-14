@@ -11,27 +11,57 @@
 
     <Button
         android:id="@+id/goAllLocations"
-        android:layout_width="215dp"
-        android:layout_height="128dp"
+        android:layout_width="500dp"
+        android:layout_height="300dp"
+        android:layout_marginTop="390dp"
+        android:layout_marginEnd="300dp"
+        android:background="@drawable/rounded_button"
         android:onClick="GetList"
-        android:text="AllMapLocations"
+        android:text="All Map Locations"
+        android:textAllCaps="true"
+        android:textSize="36dp"
+        app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.733" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:id="@+id/goCurrentMapLocations"
-        android:layout_width="215dp"
-        android:layout_height="128dp"
+        android:layout_width="500dp"
+        android:layout_height="300dp"
+        android:layout_marginStart="300dp"
+        android:layout_marginTop="390dp"
+        android:background="@drawable/rounded_button"
         android:onClick="GetList"
-        android:text="CurrentMap"
+        android:text="Current Map"
+
+        android:textAllCaps="true"
+        android:textSize="36dp"
+        app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.472" />
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="610dp"
+        android:layout_height="150dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="80dp"
+        android:gravity="center"
+        android:text="Maps"
+        android:textAllCaps="true"
+        android:textSize="80dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

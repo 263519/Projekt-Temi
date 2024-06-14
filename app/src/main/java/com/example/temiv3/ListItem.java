@@ -350,6 +350,8 @@ public class ListItem {
 
 
 
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -360,6 +362,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -367,11 +370,16 @@ import java.util.List;
 import java.util.Map;
 
 import java.util.HashMap;
+
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import java.io.File;
+
 
 public class ListItem {
 
@@ -428,11 +436,41 @@ public class ListItem {
         return result[0];
     }
 
-    public String getDescriptionByLocation(String location) {
+
+
+//    public String getDescriptionByLocation(String location,  String mapName) {
+//        OkHttpClient client = new OkHttpClient();
+//
+//        //Log.i(TAG, String.format("MAPNAME : %s ", mapName));
+//        RequestBody formBody = new FormBody.Builder()
+//                .add("location", location)
+//                .add("MapName", mapName)
+//                .build();
+//
+//        Request request = new Request.Builder()
+//                .url("https://temi.nokiagarage.pl/Koty/SimpleApi/getdescriptionbylocation.php")
+//                .post(formBody)
+//                .build();
+//
+//        try {
+//            Response response = client.newCall(request).execute();
+//            if (response.isSuccessful()) {
+//                return response.body().string();
+//            } else {
+//                return "Error: " + response.code() + " " + response.message();
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "Network error";
+//        }
+//    }
+
+    public String getDescriptionAndIdByLocation(String location, String mapName) {
         OkHttpClient client = new OkHttpClient();
 
         RequestBody formBody = new FormBody.Builder()
                 .add("location", location)
+                .add("MapName", mapName)
                 .build();
 
         Request request = new Request.Builder()
@@ -443,7 +481,17 @@ public class ListItem {
         try {
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
-                return response.body().string();
+                String responseBody = response.body().string();
+                // Oczekujemy, że odpowiedź będzie w formacie "description|id"
+                String[] parts = responseBody.split("\\|");
+                if (parts.length == 2) {
+                    String description = parts[0];
+                    String id = parts[1];
+                    // Zwracamy opis i ID jako pojedynczy ciąg znaków, oddzielony separatorem "|"
+                    return description + "|" + id;
+                } else {
+                    return "Error: Invalid response format";
+                }
             } else {
                 return "Error: " + response.code() + " " + response.message();
             }
@@ -451,15 +499,16 @@ public class ListItem {
             e.printStackTrace();
             return "Network error";
         }
-
     }
 
 
-    public void updateDescriptionInDatabase(String location, String newDescription) {
+
+    public void updateDescriptionInDatabase(String location, String oldDescription, String newDescription) {
         OkHttpClient client = new OkHttpClient();
 
         RequestBody formBody = new FormBody.Builder()
                 .add("location", location)
+                .add("oldDescription", oldDescription)
                 .add("newDescription", newDescription)
                 .build();
 
@@ -486,6 +535,12 @@ public class ListItem {
             }
         }).start();
     }
+
+
+
+
+
+
 
 
     public List<String> getMapFilePathsFromDatabase() {
@@ -620,7 +675,57 @@ public class ListItem {
     }
 
 
+    public void updateImage(String location, String description, Bitmap image, Context context) {
+        // Tworzenie folderu w pamięci podręcznej, jeśli nie istnieje
+        File dirr = new File(context.getExternalFilesDir(null), "images");
+        File cacheDir = new File(context.getExternalFilesDir(null), "images");
+        if (!cacheDir.exists()) {
+            cacheDir.mkdir();
+        }
+        Log.d("FolderPath", "Ścieżka do folderu: " + dirr.getAbsolutePath());
+        Log.d("FolderPath", "Lokacja do zdjecia: " + location);
+        Log.d("FolderPath", "descryption do zdjecia: " + description);
+        // Tworzenie obiektu OkHttpClient
+        OkHttpClient client = new OkHttpClient();
 
+        // Tworzenie zapytania HTTP
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("location", location)
+                .addFormDataPart("description", description)
+                .build();
+
+        // Tworzenie obiektu Request
+        Request request = new Request.Builder()
+                .url("https://temi.nokiagarage.pl/Koty/SimpleApi/updateimage.php")
+                .post(requestBody)
+                .build();
+
+        // Wykonywanie zapytania HTTP w osobnym wątku
+        new Thread(() -> {
+            try {
+                // Wykonanie zapytania
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    // Pobranie odpowiedzi z serwera (ID)
+                    String responseBody = response.body().string();
+                    Log.d("ImageUploader", "Received ID from server: " + responseBody);
+
+                    // Zapis obrazka w folderze o nazwie ID
+                    File imageFile = new File(cacheDir, responseBody + ".jpg");
+                    FileOutputStream fos = new FileOutputStream(imageFile);
+                    image.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                    fos.close();
+                    Log.d("ImageUploader", "Image saved successfully");
+                } else {
+                    Log.e("ImageUploader", "Error: " + response.code() + " " + response.message());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e("ImageUploader", "Network error: " + e.getMessage());
+            }
+        }).start();
+    }
 
 
 

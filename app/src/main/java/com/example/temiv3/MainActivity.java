@@ -7,8 +7,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.assist.AssistStructure;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.annotation.SuppressLint;
@@ -25,11 +31,15 @@ import androidx.core.content.FileProvider;
 import androidx.core.view.ViewCompat;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.Switch;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewSwitcher;
 
 
 import com.robotemi.sdk.Robot;
@@ -40,13 +50,16 @@ import com.robotemi.sdk.listeners.OnDetectionStateChangedListener;
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnLocationsUpdatedListener;
 import com.robotemi.sdk.listeners.OnRobotReadyListener;
+
 import com.robotemi.sdk.map.Layer;
 
 import com.robotemi.sdk.map.MapDataModel;
 import com.robotemi.sdk.map.MapImage;
 import com.robotemi.sdk.map.MapInfo;
 import com.robotemi.sdk.map.MapModel;
+import com.robotemi.sdk.map.OnLoadMapStatusChangedListener;
 import com.robotemi.sdk.navigation.listener.OnCurrentPositionChangedListener;
+import com.robotemi.sdk.navigation.listener.OnReposeStatusChangedListener;
 import com.robotemi.sdk.navigation.model.Position;
 import com.robotemi.sdk.permission.OnRequestPermissionResultListener;
 import com.robotemi.sdk.permission.Permission;
@@ -80,7 +93,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener, Robot.AsrListener, OnDetectionStateChangedListener, OnCurrentPositionChangedListener, OnRequestPermissionResultListener {
+public class MainActivity extends AppCompatActivity implements OnRobotReadyListener, OnGoToLocationStatusChangedListener, Robot.TtsListener, OnSequencePlayStatusChangedListener, OnLocationsUpdatedListener, Robot.AsrListener, OnDetectionStateChangedListener, OnCurrentPositionChangedListener, OnRequestPermissionResultListener, OnReposeStatusChangedListener {
 
 
     private static final String AUTHORITY = "com.example.temiv3.provider";
@@ -89,6 +102,15 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
     public static final String TAG = MainActivity.class.getSimpleName();
     public static Robot mRobot;
     public static String MapName;
+    private ProgressBar progressBar;
+    private FrameLayout progressOverlay;
+
+    private ImageView imageView;
+
+    private Button goButton ;
+    private Button goAllButton;
+
+
 
     ListItem listItem;
     boolean isDetectionModeOn = false;
@@ -100,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         // Initialize robot instance`
         mRobot = Robot.getInstance();
         mRobot.requestToBeKioskApp();
+
 
         Log.d(TAG, String.format("Permission: %s ",mRobot.checkSelfPermission(Permission.FACE_RECOGNITION)));
         mRobot.setKioskModeOn(true);
@@ -115,6 +138,8 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             public void onClick(View view) {
                 mRobot.setKioskModeOn(false);
                 mRobot.showAppList();
+                finish();
+               // System.exit(0);
             }
         });
 
@@ -152,6 +177,12 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
 
         Button Listbutton = (Button) findViewById((R.id.listbutton)) ;
         Button AddLocation = (Button) findViewById(R.id.AddLoc);
+        progressBar = findViewById(R.id.progressBar);
+        //nprogressBar.setVisibility(View.GONE);
+        progressOverlay = findViewById(R.id.progress_overlay);
+        progressBar.setVisibility(View.VISIBLE);
+        imageView = findViewById(R.id.imageView);
+        imageView.setVisibility(View.GONE);
 
         AddLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, DataList.class);
                 startActivity(intent);
-
+                finish();
             }
         });
 
@@ -194,6 +225,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         mRobot.addOnLocationsUpdatedListener(this);
         mRobot.addOnDetectionStateChangedListener(this);
         mRobot.addOnCurrentPositionChangedListener(this);
+        mRobot.addOnReposeStatusChangedListener(this);
     }
 /////////////////////////////
     @Override
@@ -208,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements OnRobotReadyListe
         mRobot.removeOnLocationsUpdateListener(this);
         mRobot.removeOnDetectionStateChangedListener(this);
         mRobot.removeOnCurrentPositionChangedListener(this);
+        mRobot.removeOnReposeStatusChangedListener(this);
 
 
     }
@@ -297,102 +330,158 @@ public void onRobotReady(boolean isReady) {
 
 
         //////////////////////////////
+
+
         Button buttonLoadMapFromPrivateFile = findViewById(R.id.buttonLoadMapFromPrivateFile);
         buttonLoadMapFromPrivateFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                buttonLoadMapFromPrivateFile.setEnabled(false); // Disable the button
 
-                saveCurrentMap();
+                CompletableFuture<Void> saveMapFuture = new CompletableFuture<>();
+                saveCurrentMap(saveMapFuture);
 
-                // First declare FileProvider in AndroidManifest.
-
-                // The folder needs to be declared in res/xml/provider_paths.xml
-                // <files-path name="map_internal_file" path="maps/" />
-                File internalMapDirectory = new File(getFilesDir(), "maps");
-                Log.i("load", String.format("loadInternal: %s",internalMapDirectory));
-                // The folder needs to be declared in res/xml/provider_paths.xml
-                // <external-files-path name="map_external_file" path="maps/"/>
-                File externalMapDirectory = new File(getExternalFilesDir(null), "maps");
-                Log.i("load", String.format("loadexternal: %s",externalMapDirectory));
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        File[] internalMapFiles = internalMapDirectory.listFiles();
-                        File[] externalMapFiles = externalMapDirectory.listFiles();
-                        List<String> filePaths = listItem.getMapFilePathsFromDatabase();
-
-                        // Utwórz listę plików z plików wewnętrznych, zewnętrznych i z bazy danych
-                        List<File> files = new ArrayList<>();
-                        if (internalMapFiles != null) {
-                            files.addAll(Arrays.asList(internalMapFiles));
-                        }
-                      /*  if (externalMapFiles != null) {
-                            files.addAll(Arrays.asList(externalMapFiles));
-                        }*/
-                        for (String filePath : filePaths) {
-                            files.add(new File(filePath));
-                        }
-
-
-                        files = files.stream()
-                                .filter(file -> file.isFile() && file.getPath().toLowerCase().endsWith("tar.gz"))
-                                .collect(Collectors.toList());
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-
-                        if (!files.isEmpty()) {
-                            CharSequence[] fileNames = new CharSequence[files.size()];
-                            for (int i = 0; i < files.size(); i++) {
-                                fileNames[i] = files.get(i).getPath();
-                            }
-
-                            List<File> finalFiles = files;
-                           // List<File> finalFiles = filesPaths;
-                            builder.setItems(fileNames, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            File fileSelected = finalFiles.get(which);
-                                            Log.d("SDK-Sample", "Map file selected " + fileSelected.getPath());
-
-                                            Uri uri = FileProvider.getUriForFile(MainActivity.this, AUTHORITY, fileSelected);
-                                            loadMap(uri);
-
-
-                                        }
-                                    }).setTitle("Select one map file to load")
-                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    });
-                        } else {
-                            builder.setTitle("No map backup files found")
-                                    .setMessage("This sample takes map files from\n/sdcard/Android/data/com.robotemi.sdk.sample/files/maps/\nand /data/data/com.robotemi.sdk.sample/files/maps/")
-                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    });
-                        }
-
-                        runOnUiThread(new Runnable() {
+                saveMapFuture.thenRun(() -> {
+                    runOnUiThread(() -> progressOverlay.setVisibility(View.GONE));
+                    // This code will run after saveCurrentMap is complete
+                    mRobot.addOnLoadMapStatusChangedListener(new OnLoadMapStatusChangedListener() {
+                        private Handler handler = new Handler(Looper.getMainLooper());
+                        private Runnable timeoutRunnable = new Runnable() {
                             @Override
                             public void run() {
-                                builder.show();
+                                Log.i("MapStatus", "Status: TIMEOUT");
+                                progressOverlay.setVisibility(View.GONE);
                             }
-                        });
-                    }
-                }).start();
+                        };
+
+                        @Override
+                        public void onLoadMapStatusChanged(int status, @NonNull String s) {
+                            switch (status) {
+                                case 0:
+                                    Log.i("MapStatus", "Status: COMPLETE");
+                                    handler.removeCallbacks(timeoutRunnable);
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressOverlay.setVisibility(View.GONE);
+                                        }
+                                    });
+                                    mRobot.removeOnLoadMapStatusChangedListener(this);
+                                    MapDataModel map = mRobot.getMapData();
+                                    assert map != null;
+                                    MapName = map.getMapName();
+                                    break;
+                                case 1:
+                                    Log.i("MapStatus", "Status: START");
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressOverlay.setVisibility(View.VISIBLE);
+                                        }
+                                    });
+                                    handler.postDelayed(timeoutRunnable, 1 * 60 * 1000); // Set timeout to 1 minute
+                                    break;
+                                // Handle other statuses...
+                                default:
+                                    Log.i("MapStatus", "Status: " + status);
+                                    break;
+                            }
+                        }
+                    });
+
+                    // First declare FileProvider in AndroidManifest.
+
+                    // The folder needs to be declared in res/xml/provider_paths.xml
+                    // <files-path name="map_internal_file" path="maps/" />
+                    File internalMapDirectory = new File(getFilesDir(), "maps");
+                    Log.i("load", String.format("loadInternal: %s", internalMapDirectory));
+                    // The folder needs to be declared in res/xml/provider_paths.xml
+                    // <external-files-path name="map_external_file" path="maps/"/>
+                    File externalMapDirectory = new File(getExternalFilesDir(null), "maps");
+                    Log.i("load", String.format("loadexternal: %s", externalMapDirectory));
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            File[] internalMapFiles = internalMapDirectory.listFiles();
+                            File[] externalMapFiles = externalMapDirectory.listFiles();
+                            List<String> filePaths = listItem.getMapFilePathsFromDatabase();
+
+                            // Utwórz listę plików z plików wewnętrznych, zewnętrznych i z bazy danych
+                            List<File> files = new ArrayList<>();
+                            if (internalMapFiles != null) {
+                                files.addAll(Arrays.asList(internalMapFiles));
+                            }
+                            for (String filePath : filePaths) {
+                                files.add(new File(filePath));
+                            }
+
+                            files = files.stream()
+                                    .filter(file -> file.isFile() && file.getPath().toLowerCase().endsWith("tar.gz"))
+                                    .collect(Collectors.toList());
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+                            if (!files.isEmpty()) {
+                                CharSequence[] fileNames = new CharSequence[files.size()];
+                                for (int i = 0; i < files.size(); i++) {
+                                    fileNames[i] = files.get(i).getPath();
+                                }
+
+                                List<File> finalFiles = files;
+                                builder.setItems(fileNames, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                File fileSelected = finalFiles.get(which);
+                                                Log.d("SDK-Sample", "Map file selected " + fileSelected.getPath());
+
+                                                Uri uri = FileProvider.getUriForFile(MainActivity.this, AUTHORITY, fileSelected);
+                                                loadMap(uri);
+                                            }
+                                        }).setTitle("Select one map file to load")
+                                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                            } else {
+                                builder.setTitle("No map backup files found")
+                                        .setMessage("This sample takes map files from\n/sdcard/Android/data/com.robotemi.sdk.sample/files/maps/\nand /data/data/com.robotemi.sdk.sample/files/maps/")
+                                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                            }
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AlertDialog dialog = builder.show();
+                                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                        @Override
+                                        public void onDismiss(DialogInterface dialog) {
+                                            buttonLoadMapFromPrivateFile.setEnabled(true); // Re-enable the button
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }).start();
+                }).exceptionally(throwable -> {
+                    // Handle exceptions if saveCurrentMap failed
+                    throwable.printStackTrace();
+                    buttonLoadMapFromPrivateFile.setEnabled(true); // Re-enable the button in case of an error
+                    return null;
+                });
             }
         });
 
-
 //////////////////////////////////////
         //goToLocations(locations_withou_base);
-        Button goButton = findViewById(R.id.gobutton);
+        goButton = findViewById(R.id.gobutton);
         goButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -414,16 +503,20 @@ public void onRobotReady(boolean isReady) {
                //List<String> locations = mRobot.getLocations();
                // List<String> locations_withou_base = new ArrayList<>(locations.subList(1, locations.size()));
                 //goToLocations(locations_withou_base);
+                goButton.setEnabled(false);
+                goAllButton.setEnabled(false);
             }
         });
 ///////////////////////////////////////////
-        Button goAllButton = findViewById(R.id.goAllbutton);
+        goAllButton = findViewById(R.id.goAllbutton);
         goAllButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 List<String> locations = mRobot.getLocations();
 
                 goToLocations(locations);
+                goButton.setEnabled(false);
+                goAllButton.setEnabled(false);
             }
         });
         List<String> loc = mRobot.getLocations();
@@ -432,53 +525,61 @@ public void onRobotReady(boolean isReady) {
     }
 
 }
-///////////////////////////////////////
-    private void saveCurrentMap() {
-        ParcelFileDescriptor parcelFileDescriptor = Robot.getInstance().getCurrentMapBackupFile(true);
-        if (parcelFileDescriptor == null) return;
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                File dir = new File(getApplicationContext().getExternalFilesDir(null), "maps");
-                if (!dir.exists()) {
-                    dir.mkdir();
-                }
-                String mapName = mRobot.getMapData().getMapName();
-                File file = new File(dir, "map-" + mapName + ".tar.gz");
-                try {
-                    file.createNewFile();
-                    ParcelFileDescriptor.AutoCloseInputStream inputStream = new ParcelFileDescriptor.AutoCloseInputStream(parcelFileDescriptor);
-                    FileOutputStream output = new FileOutputStream(file);
-
-                    byte[] buffer = new byte[1024];
-                    int length;
-                    while ((length = inputStream.read(buffer)) > 0) {
-                        output.write(buffer, 0, length);
-                    }
-                    inputStream.close();
-                    output.close();
-
-                    if (file.length() > 0) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getApplicationContext(), "Current map saved", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+private void saveCurrentMap(CompletableFuture<Void> future) {
+    ParcelFileDescriptor parcelFileDescriptor = Robot.getInstance().getCurrentMapBackupFile(true);
+    if (parcelFileDescriptor == null) {
+        future.complete(null); // Signal completion if there's nothing to save
+        return;
     }
 
+    new Thread(new Runnable() {
+        @Override
+        public void run() {
+            File dir = new File(getApplicationContext().getExternalFilesDir(null), "maps");
+            if (!dir.exists()) {
+                dir.mkdir();
+            }
+            String mapName = mRobot.getMapData().getMapName();
+            File file = new File(dir, "map-" + mapName + ".tar.gz");
+            try {
+                file.createNewFile();
+                ParcelFileDescriptor.AutoCloseInputStream inputStream = new ParcelFileDescriptor.AutoCloseInputStream(parcelFileDescriptor);
+                FileOutputStream output = new FileOutputStream(file);
+
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = inputStream.read(buffer)) > 0) {
+                    output.write(buffer, 0, length);
+                }
+                inputStream.close();
+                output.close();
+
+                if (file.length() > 0) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Current map saved", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                future.complete(null); // Signal completion after saving the map
+            } catch (IOException e) {
+                e.printStackTrace();
+                future.completeExceptionally(e); // Signal exception if an error occurs
+            }
+        }
+    }).start();
+    progressOverlay.setVisibility(View.VISIBLE);
+
+}
 
 //////////////////////////////////////////////
     private void loadMap(Uri uri) {
+
         AssistStructure.ViewNode checkBoxLoadMapWithRepose = null;
         boolean reposeRequired = true;
+        Log.d(TAG, String.format("Map Loading %s", reposeRequired));
         AssistStructure.ViewNode checkBoxLoadMapWithoutUI = null;
         boolean withoutUI = true;
         Position position = null;
@@ -493,6 +594,7 @@ public void onRobotReady(boolean isReady) {
                 position,
                 withoutUI
         );
+        Log.d(TAG, String.format("Map Loaded %s", reposeRequired));
     }
 ////////////////////////////////////////////////
     private void getMap(String name, List<MapModel> maplist)
@@ -532,63 +634,178 @@ private void AddLocationToDatabase(List<String> locations){
 
 
 /////////////////////////////////
+//private void speakOnArrival(String location, CompletableFuture<Void> future) {
+//    String text = null;
+//
+//    final CountDownLatch latch = new CountDownLatch(1);
+//    final String[] call = {null};
+//
+//    new Thread(new Runnable() {
+//        @Override
+//        public void run() {
+//            Log.i(TAG, String.format("MAPNAME : %s ", MapName));
+//            call[0] = listItem.getDescriptionByLocation(location, MapName);
+//            latch.countDown();
+//        }
+//    }).start();
+//
+//    try {
+//        latch.await();
+//        text = call[0];
+//        Log.e("call", "call " + text);
+//    } catch (InterruptedException e) {
+//        e.printStackTrace();
+//    }
+//
+//    boolean isRotate = false;
+//    if (text == null) {
+//        text = "Witam";
+//        isRotate = true;
+//    }
+//
+//    final boolean isrotate = isRotate;
+//    TtsRequest ttsRequest = TtsRequest.create(text, false, TtsRequest.Language.PL_PL);
+//
+//    Log.i(TAG, String.format("Detection mode is %s", isDetectionModeOn ? "ON" : "OFF"));
+//
+//    if (isDetectionModeOn) {
+//        Log.d(TAG, String.format("IS Detection mode ON1: %s ", mRobot.isDetectionModeOn()));
+//        mRobot.setDetectionModeOn(true);
+//        Log.d(TAG, String.format("IS KIOSK mode ON: %s ", mRobot.isSelectedKioskApp()));
+//        Log.d(TAG, String.format("IS Detection mode ON3: %s ", mRobot.isDetectionModeOn()));
+//        final int[] isFace = {0};
+//        mRobot.addOnDetectionStateChangedListener(new OnDetectionStateChangedListener() {
+//            @Override
+//            public void onDetectionStateChanged(int i) {
+//                isFace[0] = i;
+//                if (i == 2) {
+//                    mRobot.setDetectionModeOn(false);
+//                    Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
+//                    mRobot.speak(ttsRequest);
+//                    mRobot.removeOnDetectionStateChangedListener(this);
+//                }
+//            }
+//        });
+//
+//        mRobot.addOnCurrentPositionChangedListener(new OnCurrentPositionChangedListener() {
+//            public void onCurrentPositionChanged(@NonNull Position position) {
+//                List<Object> RobotPos = new ArrayList<>();
+//                float posX = position.getX();
+//                float posY = position.getY();
+//                float yaw = position.getYaw();
+//                int tilt = position.getTiltAngle();
+//
+//                if (isFace[0] != 2) {
+//                    Log.d(TAG, String.format("Current Pose: X=%f, Y=%f, Yaw=%f, TiltAngle=%d FaceID=%d", posX, posY, yaw, tilt, isFace[0]));
+//                    mRobot.removeOnCurrentPositionChangedListener(this);
+//                }
+//            }
+//        });
+//    } else {
+//        mRobot.speak(ttsRequest);
+//    }
+//
+//    mRobot.addTtsListener(new Robot.TtsListener() {
+//        @Override
+//        public void onTtsStatusChanged(TtsRequest ttsRequest) {
+//            if (ttsRequest.getStatus() == TtsRequest.Status.COMPLETED) {
+//                Button GoNext = findViewById(R.id.button_go_next);
+//                GoNext.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        future.complete(null);
+//                    }
+//                });
+//            }
+//        }
+//    });
+//}
+//ImageView imageView = findViewById(R.id.imageView);
+private void displayImage(String imageID) {
+    String imagePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.example.temiv3/files/images/" + imageID + ".jpg";
+    File imgFile = new File(imagePath);
+    Log.e("Image", "PATH:" + imagePath);
+    if (imgFile.exists()) {
+        Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+        // Display the image
+        imageView.setImageBitmap(myBitmap);
+        imageView.setVisibility(View.VISIBLE);
+        Log.e("Image", "Image file exists");
+    } else {
+        // If the file doesn't exist, display the default image
+        String defaultImagePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.example.temiv3/files/images/nokia.jpg";
+        File defaultImgFile = new File(defaultImagePath);
+        if (defaultImgFile.exists()) {
+            Bitmap defaultBitmap = BitmapFactory.decodeFile(defaultImgFile.getAbsolutePath());
+            imageView.setImageBitmap(defaultBitmap);
+        } else {
+            // Optionally, handle the case where the default image doesn't exist
+            Log.e("Image", "Default image file doesn't exist");
+        }
 
+        imageView.setVisibility(View.VISIBLE);
+        Log.e("Image", "Image file doesn't exist");
+    }
+
+    // Set black background around the image
+    imageView.setBackgroundColor(Color.BLACK);
+}
 
     private void speakOnArrival(String location, CompletableFuture<Void> future) {
+    String text = null;
+    String imageID = null;
+    String result = null;
 
 
-        String text = null;// = listItem.getDescriptionByLocation(location);
+    final CountDownLatch latch = new CountDownLatch(1);
+    final String[] call = {null};
 
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        final String[] call = {null}; // Tutaj przechowamy odpowiedź
-
-        // Uruchom nowy wątek do pobrania opisu lokalizacji
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // Pobierz opis lokalizacji i przypisz do tablicy call
-                call[0] = listItem.getDescriptionByLocation(location);
-                // Zwalniamy blokadę, gdy odpowiedź zostanie otrzymana
-                latch.countDown();
-            }
-        }).start();
-
-        try {
-            // Czekamy na zakończenie operacji wątku
-            latch.await();
-            // Przypisz wynik do zmiennej text po zwolnieniu blokady
-            text = call[0];
-            Log.e("call", "call " + text);
-            // Możesz teraz użyć zmiennej text do dalszego przetwarzania
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    new Thread(new Runnable() {
+        @Override
+        public void run() {
+            Log.i(TAG, String.format("MAPNAME : %s ", MapName));
+            call[0] = listItem.getDescriptionAndIdByLocation(location, MapName);
+            latch.countDown();
         }
-    
+    }).start();
 
-
-       boolean isRotate = false;
-        if(text == null){
-            text = "Witam";
-            isRotate = true;
-
+    try {
+        latch.await();
+        result = call[0];
+        Log.e("callTEXT", "resoult: " + result);
+        String[] parts = result.split("\\|");
+        if (parts.length == 2) {
+            text = parts[0]; // Przypisanie opisu
+            imageID = parts[1]; // Przypisanie ID obrazu
         }
-        final boolean isrotate = isRotate;
-        TtsRequest ttsRequest = TtsRequest.create(text, false, TtsRequest.Language.PL_PL);
+        displayImage(imageID);
+        Log.e("callTEXT", "text: " + text);
+        Log.e("callTEXT", "imageID: " + imageID);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
 
-        Log.i(TAG, String.format("Detection mode is %s", isDetectionModeOn ? "ON" : "OFF"));
+    boolean isRotate = false;
+    if (text == null) {
+        text = "Witam";
+        isRotate = true;
+    }
 
-        if(isDetectionModeOn){
+    final boolean isrotate = isRotate;
+    TtsRequest ttsRequest = TtsRequest.create(text, false, TtsRequest.Language.PL_PL);
+
+    Log.i(TAG, String.format("Detection mode is %s", isDetectionModeOn ? "ON" : "OFF"));
+
+    if (isDetectionModeOn) {
         Log.d(TAG, String.format("IS Detection mode ON1: %s ", mRobot.isDetectionModeOn()));
         mRobot.setDetectionModeOn(true);
         Log.d(TAG, String.format("IS KIOSK mode ON: %s ", mRobot.isSelectedKioskApp()));
         Log.d(TAG, String.format("IS Detection mode ON3: %s ", mRobot.isDetectionModeOn()));
-       // mRobot.speak(ttsRequest);
         final int[] isFace = {0};
         mRobot.addOnDetectionStateChangedListener(new OnDetectionStateChangedListener() {
             @Override
             public void onDetectionStateChanged(int i) {
-                  isFace[0] = i;
+                isFace[0] = i;
                 if (i == 2) {
                     mRobot.setDetectionModeOn(false);
                     Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
@@ -598,95 +815,88 @@ private void AddLocationToDatabase(List<String> locations){
             }
         });
 
-
         mRobot.addOnCurrentPositionChangedListener(new OnCurrentPositionChangedListener() {
             public void onCurrentPositionChanged(@NonNull Position position) {
-               // Log.d(TAG, String.format("IS Detection mode ON2: %s ", mRobot.isDetectionModeOn()));
                 List<Object> RobotPos = new ArrayList<>();
-                float posX = position.getX(); // [m]
-                float posY = position.getY(); // [m]
-                float yaw =position.getYaw() ; // [deg] // krecenie
-                int tilt = position.getTiltAngle(); // [deg]
+                float posX = position.getX();
+                float posY = position.getY();
+                float yaw = position.getYaw();
+                int tilt = position.getTiltAngle();
 
-
-                  if(isFace[0] != 2 ){
-                    Log.d(TAG, String.format("Current Pose: X=%f, Y=%f, Yaw=%f, TiltAngle=%d FaceID=%d", posX, posY, yaw, tilt ,isFace[0]));
-
-                     // mRobot.goToPosition(pose);
-                     // mRobot.stopMovement();
-
-
+                if (isFace[0] != 2) {
+                    Log.d(TAG, String.format("Current Pose: X=%f, Y=%f, Yaw=%f, TiltAngle=%d FaceID=%d", posX, posY, yaw, tilt, isFace[0]));
                     mRobot.removeOnCurrentPositionChangedListener(this);
-
-                  }
-            }
-        });
-        }else {
-                    mRobot.speak(ttsRequest);
-
-        }
-
-        mRobot.addTtsListener(new Robot.TtsListener() {
-            @Override
-            public void onTtsStatusChanged(TtsRequest ttsRequest ) {
-                if (ttsRequest.getStatus() == TtsRequest.Status.COMPLETED ) {
-
-                    Button GoNext = (Button) findViewById(R.id.button_go_next);
-                    GoNext.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            future.complete(null); // Oznacz CompletableFuture jako ukończony po zakończeniu wypowiedzi
-                        }
-                    });
-                    //future.complete(null); // Oznacz CompletableFuture jako ukończony po zakończeniu wypowiedzi
                 }
             }
         });
+    } else {
+        mRobot.speak(ttsRequest);
     }
 
-    ///////////////////////////
+    mRobot.addTtsListener(new Robot.TtsListener() {
+        @Override
+        public void onTtsStatusChanged(TtsRequest ttsRequest) {
+            if (ttsRequest.getStatus() == TtsRequest.Status.COMPLETED) {
+              //  setContentView(R.layout.activity_main);
+                //viewSwitcher.showNext();
+                imageView.setVisibility(View.GONE);
+                Button GoNext = findViewById(R.id.button_go_next);
+                GoNext.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        future.complete(null);
+                    }
+                });
+            }
+        }
+    });
+}
+
+
     private void goToLocations(List<String> locations) {
+        for (String location : locations) {
+            Log.d("Complete locations", location);
+        }
+
         CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
         for (String location : locations) {
             future = future.thenCompose((Void) -> {
                 CompletableFuture<Void> goToFuture = new CompletableFuture<>();
-                mRobot.addOnGoToLocationStatusChangedListener(new OnGoToLocationStatusChangedListener() {
+                OnGoToLocationStatusChangedListener listener = new OnGoToLocationStatusChangedListener() {
 
                     @Override
-                    public void onGoToLocationStatusChanged(@NonNull String location, @NonNull String status, int descriptionId, @NonNull String description) {
-
+                    public void onGoToLocationStatusChanged(@NonNull String loc, @NonNull String status, int descriptionId, @NonNull String description) {
                         if (status.equals("complete")) {
-                            Log.d(TAG, "Completed goTo: " + location);
-                            mRobot.stopMovement(); // Zatrzymaj ruch robota po dotarciu do lokalizacji
-                            speakOnArrival(location, goToFuture); // Wywołaj metodę mówienia, a następnie przekaż CompletableFuture dla kontynuacji
-                        }
-                        if (status.equals("abort")) {
-                            Button RetryButton = (Button) findViewById(R.id.button_retry);
+                            Log.d(TAG, "Completed goTo: " + loc);
+                            mRobot.stopMovement();
+                            mRobot.removeOnGoToLocationStatusChangedListener(this); // Usuń słuchacza
+                            speakOnArrival(loc, goToFuture);
+                        } else if (status.equals("abort")) {
+                            Button RetryButton = findViewById(R.id.button_retry);
                             RetryButton.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    mRobot.goTo(location);
+                                    mRobot.goTo(loc);
                                 }
                             });
-                            //goToFuture.complete(null);
-
                         }
-
                     }
-                });
+                };
 
+                mRobot.addOnGoToLocationStatusChangedListener(listener);
                 mRobot.goTo(location);
-
-
                 return goToFuture;
             });
         }
 
         future.thenRun(() -> {
             Log.d(TAG, "All goTo operations completed");
-
+            goButton.setEnabled(true);
+            goAllButton.setEnabled(true);
         });
     }
+
+
 
 /////////////////////////////
     @Override
@@ -772,6 +982,11 @@ private void AddLocationToDatabase(List<String> locations){
 
     @Override
     public void onRequestPermissionResult(@NonNull Permission permission, int i, int i1) {
+
+    }
+
+    @Override
+    public void onReposeStatusChanged(int i, @NonNull String s) {
 
     }
 

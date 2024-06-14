@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class DataList extends AppCompatActivity {
-    private List<String> checkedCheckboxesNames = new ArrayList<>();
+    public List<String> checkedCheckboxesNames = new ArrayList<>();
     public boolean currentMap = false;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private Handler mainThreadHandler = new Handler(Looper.getMainLooper());
@@ -57,12 +57,13 @@ public class DataList extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshData();
+        //checkedCheckboxesNames = new ArrayList<>();
     }
 
     private void refreshData() {
         executorService.execute(() -> {
             ListItem MyData = new ListItem();
-
+            checkedCheckboxesNames = new ArrayList<>();
             List<Map<String, String>> MyDataList;
 
             if(!currentMap){
@@ -94,8 +95,13 @@ public class DataList extends AppCompatActivity {
             CheckBox box = new CheckBox(this);
             box.setText(local);
 
+
+            Button uploadImageButton = new Button(this);
+            uploadImageButton.setText("Upload Image");
+
             tab.addView(box);
             tab.addView(button);
+            tab.addView(uploadImageButton);
 
             box.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
@@ -106,9 +112,17 @@ public class DataList extends AppCompatActivity {
             });
 
             button.setOnClickListener(v -> {
+                checkedCheckboxesNames = new ArrayList<>();
                 Intent intent = new Intent(DataList.this, EditDescriptionActivity.class);
                 intent.putExtra("description", description);
                 intent.putExtra("location", local);
+                startActivity(intent);
+            });
+            uploadImageButton.setOnClickListener(v -> {
+                Intent intent = new Intent(DataList.this, UploadImageActivity.class);
+                intent.putExtra("description", description);
+                intent.putExtra("location", local);
+
                 startActivity(intent);
             });
         }

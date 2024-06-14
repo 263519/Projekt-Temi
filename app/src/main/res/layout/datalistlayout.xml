@@ -10,10 +10,13 @@
         android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginBottom="230dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
 
         <LinearLayout
             android:id="@+id/linearLayout"
@@ -39,12 +42,12 @@
                         android:layout_width="226dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:background="@drawable/rounded_button"
                         android:padding="8dp"
                         android:text="Location"
-                        android:textColor="@android:color/white" />
-
-
-
+                        android:textAllCaps="true"
+                        android:textColor="@android:color/white"
+                        app:backgroundTint="@null" />
 
 
                     <EditText
@@ -60,7 +63,8 @@
                         android:id="@+id/checkBox"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Location" />
+                        android:text="Location"
+                        android:textAllCaps="true" />
                 </TableRow>
             </TableLayout>
         </LinearLayout>
@@ -68,11 +72,16 @@
 
     <Button
         android:id="@+id/exitButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_width="1500dp"
+        android:layout_height="150dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/rounded_button"
         android:text="Exit"
-        android:visibility="gone"
+
+        android:textAllCaps="true"
+        android:textSize="36dp"
+        app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

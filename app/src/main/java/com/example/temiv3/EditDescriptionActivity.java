@@ -40,7 +40,7 @@ public class EditDescriptionActivity extends AppCompatActivity {
                 ListItem listItem = new ListItem();
 
 
-                listItem.updateDescriptionInDatabase(location, newDescription);
+                listItem.updateDescriptionInDatabase(location,description ,newDescription);
                 Log.d(TAG, String.format("Location: %s", location));
                 Log.d(TAG, String.format("newDescription: %s", newDescription));
                 Log.d(TAG, String.format("oldDescription: %s", description));

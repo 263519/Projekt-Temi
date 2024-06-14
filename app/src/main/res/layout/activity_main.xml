@@ -1,144 +1,238 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/buttonExit"
-        android:layout_width="148dp"
-        android:layout_height="155dp"
-        android:text="Exit"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.001" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
+        <Button
+            android:id="@+id/buttonExit"
+            android:layout_width="610dp"
+            android:layout_height="150dp"
+            android:layout_marginStart="80dp"
+            android:layout_marginTop="80dp"
+            android:background="@drawable/rounded_button"
+            android:text="Exit"
+            android:textAllCaps="true"
+            android:textSize="48dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
+        <Button
+            android:id="@+id/AddLoc"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginEnd="444dp"
+            android:background="@drawable/rounded_button"
+            android:text="Add Location"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.584" />
 
+        <Button
+            android:id="@+id/listbutton"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginEnd="444dp"
+            android:background="@drawable/rounded_button"
+            android:text="List"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.86" />
 
+        <Button
+            android:id="@+id/gobutton"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginStart="80dp"
+            android:background="@drawable/rounded_button"
+            android:text="Go"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.861" />
 
+        <Button
+            android:id="@+id/goAllbutton"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginStart="80dp"
+            android:background="@drawable/rounded_button"
+            android:text="Go All"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.572" />
 
-    <Button
-        android:id="@+id/AddLoc"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginEnd="444dp"
-        android:text="AddLocation"
-        app:layout_constraintBottom_toBottomOf="parent"
+        <Button
+            android:id="@+id/buttonBackupMap"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginEnd="80dp"
+            android:background="@drawable/rounded_button"
+            android:text="Save"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.584" />
 
+        <Button
+            android:id="@+id/buttonLoadMapFromPrivateFile"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginEnd="80dp"
+            android:background="@drawable/rounded_button"
+            android:text="Load"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.869" />
 
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.584" />
+        <Switch
+            android:id="@+id/switchDarkMode"
+            android:layout_width="150dp"
+            android:layout_height="132dp"
+            android:layout_marginTop="36dp"
+            android:layout_marginEnd="200dp"
+            android:checked="true"
+            android:scaleX="3"
+            android:scaleY="3"
+            android:text="Dark Mode"
+            android:textAlignment="center"
+            android:textAllCaps="true"
+            android:textSize="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/listbutton"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginEnd="444dp"
-        android:text="List"
-        app:layout_constraintBottom_toBottomOf="parent"
+        <Button
+            android:id="@+id/button_go_next"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginStart="444dp"
+            android:background="@drawable/rounded_button"
+            android:text="Next Position"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.573" />
 
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.86" />
+        <Button
+            android:id="@+id/button_retry"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginStart="444dp"
+            android:background="@drawable/rounded_button"
+            android:text="Retry"
+            android:textAllCaps="true"
+            android:textSize="36dp"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.857" />
 
-    <Button
-        android:id="@+id/gobutton"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginStart="80dp"
-        android:text="Go"
+        <Switch
+            android:id="@+id/switchDetection"
+            android:layout_width="118dp"
+            android:layout_height="90dp"
+            android:layout_marginTop="88dp"
+            android:layout_marginEnd="164dp"
+            android:scaleX="3"
+            android:scaleY="3"
+            android:text="Detection Mode"
+            android:textAlignment="center"
+            android:textAllCaps="true"
+            android:textSize="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/switchDarkMode" />
 
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.861" />
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="610dp"
+            android:layout_height="150dp"
+            android:layout_marginStart="80dp"
+            android:layout_marginBottom="20dp"
+            android:gravity="center"
+            android:text="Driving"
+            android:textAllCaps="true"
+            android:textSize="48dp"
+            app:layout_constraintBottom_toTopOf="@+id/goAllbutton"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/goAllbutton"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginStart="80dp"
-        android:text="Go All"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.564" />
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="610dp"
+            android:layout_height="150dp"
+            android:layout_marginEnd="80dp"
+            android:layout_marginBottom="20dp"
+            android:gravity="center"
+            android:text="Locations"
+            android:textAllCaps="true"
+            android:textSize="48dp"
+            app:layout_constraintBottom_toTopOf="@+id/AddLoc"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/buttonBackupMap"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginEnd="80dp"
-        android:text="Save"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.584" />
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="1920dp"
+            android:layout_height="1080dp"
+            android:src="@drawable/nokia"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/buttonLoadMapFromPrivateFile"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginEnd="80dp"
-        android:text="Load"
-        app:layout_constraintBottom_toBottomOf="parent"
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.869" />
+    <FrameLayout
+        android:id="@+id/progress_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
 
-    <Switch
-        android:id="@+id/switchDarkMode"
-        android:layout_width="122dp"
-        android:layout_height="57dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="Dark Mode"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/button_go_next"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginStart="444dp"
-        android:text="NextPosition"
-        app:layout_constraintBottom_toBottomOf="parent"
-
-
-
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.573" />
-
-    <Button
-        android:id="@+id/button_retry"
-        android:layout_width="185dp"
-        android:layout_height="125dp"
-        android:layout_marginStart="444dp"
-        android:text="Retry"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.857" />
-
-    <Switch
-        android:id="@+id/switchDetection"
-        android:layout_width="149dp"
-        android:layout_height="63dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="4dp"
-        android:text="DetectionMode"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/switchDarkMode" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+    </FrameLayout>
+</FrameLayout>
